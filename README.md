@@ -3,4 +3,4 @@
 ***Members:***
 
 1. Charles Johnson
-2. Ayash Kalathiya
+2. Ayush Kalathiya
