@@ -1,5 +1,6 @@
 #version 410 core
 #include "../common/lights.glsl"
+#include ""../common/maths.glsl"
 
 // Per vertex data
 layout(location = 0) in vec3 vertex_position;
