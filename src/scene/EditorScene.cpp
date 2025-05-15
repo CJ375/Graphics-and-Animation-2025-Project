@@ -196,9 +196,23 @@ void EditorScene::EditorScene::add_imgui_selection_editor(const SceneContext& sc
             /// Adds the SceneElements custom property editors
             (*selected_element)->add_imgui_edit_section(render_scene, scene_context);
 
-            /// If it's animated, add those property editors
+            /// Check if selected element is EntityElement
+            auto* entity_selected_element = dynamic_cast<EntityElement*>(selected_element->get());
+            if (entity_selected_element != nullptr) {
+                entity_selected_element->add_imgui_edit_section(render_scene, scene_context);
+            }
+
+            /// Check if EmissiveElement
+            auto* emissive_selected_element = dynamic_cast<EmissiveEntityElement*>(selected_element->get());
+            if (emissive_selected_element != nullptr) {
+                emissive_selected_element->add_imgui_edit_section(render_scene, scene_context);
+            }
+
+            /// Check if the selected element is an AnimatedEntityElement, If it's animated, add those property editors
             auto* animated_selected_element = dynamic_cast<AnimatedEntityElement*>(selected_element->get());
+
             if (animated_selected_element != nullptr) {
+                animated_selected_element->add_imgui_edit_section(render_scene, scene_context);
                 animated_selected_element->add_animation_imgui_edit_section(render_scene, scene_context);
             }
 
