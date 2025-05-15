@@ -103,7 +103,7 @@ void EditorScene::AnimatedEntityElement::add_imgui_edit_section(MasterRenderScen
     ImGui::Text("Specular");
     ImGui::ColorEdit3("Specular Color", &rendered_entity->instance_data.material.specular_tint[0]);
     ImGui::DragFloat("Specular Intensity", &rendered_entity->instance_data.material.specular_tint.a, 0.01f, 0.0f, 1.0f);
-    ImGui::DragFloat("Shininess", &rendered_entity->instance_data.material.shininess, 1.0f, 0.0f, 100.0f);
+    ImGui::DragFloat("Shininess", &rendered_entity->instance_data.material.shininess, 1.0f, 0.0f, 150.0f);
     ImGui::Spacing();
 
     ImGui::DragDisableCursor(scene_context.window);
