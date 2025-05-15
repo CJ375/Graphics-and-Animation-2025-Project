@@ -87,12 +87,6 @@ void EditorScene::AnimatedEntityElement::add_imgui_edit_section(MasterRenderScen
     // Material Properties
     ImGui::Text("Material Properties");
     
-    // Ambient properties
-    ImGui::Text("Ambient");
-    ImGui::ColorEdit3("Ambient Color", &rendered_entity->instance_data.material.ambient_tint[0]);
-    ImGui::DragFloat("Ambient Intensity", &rendered_entity->instance_data.material.ambient_tint.a, 0.01f, 0.0f, 1.0f);
-    ImGui::Spacing();
-
     // Diffuse properties
     ImGui::Text("Diffuse");
     ImGui::ColorEdit3("Diffuse Color", &rendered_entity->instance_data.material.diffuse_tint[0]);
@@ -104,6 +98,12 @@ void EditorScene::AnimatedEntityElement::add_imgui_edit_section(MasterRenderScen
     ImGui::ColorEdit3("Specular Color", &rendered_entity->instance_data.material.specular_tint[0]);
     ImGui::DragFloat("Specular Intensity", &rendered_entity->instance_data.material.specular_tint.a, 0.01f, 0.0f, 1.0f);
     ImGui::DragFloat("Shininess", &rendered_entity->instance_data.material.shininess, 1.0f, 0.0f, 150.0f);
+    ImGui::Spacing();
+
+    // Ambient properties
+    ImGui::Text("Ambient");
+    ImGui::ColorEdit3("Ambient Color", &rendered_entity->instance_data.material.ambient_tint[0]);
+    ImGui::DragFloat("Ambient Intensity", &rendered_entity->instance_data.material.ambient_tint.a, 0.01f, 0.0f, 1.0f);
     ImGui::Spacing();
 
     ImGui::DragDisableCursor(scene_context.window);

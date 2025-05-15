@@ -145,24 +145,27 @@ void EditorScene::EntityElement::add_imgui_edit_section(MasterRenderScene& rende
 
 
     ImGui::Text("Material Properties");
-    
-    // Ambient properties
-    ImGui::Text("Ambient");
-    ImGui::ColorEdit3("Ambient Color", &rendered_entity->instance_data.material.ambient_tint[0]);
-    ImGui::DragFloat("Ambient Intensity", &rendered_entity->instance_data.material.ambient_tint.a, 0.01f, 0.0f, 1.0f);
-    ImGui::Spacing();
 
     // Diffuse properties
     ImGui::Text("Diffuse");
-    ImGui::ColorEdit3("Diffuse Color", &rendered_entity->instance_data.material.diffuse_tint[0]);
-    ImGui::DragFloat("Diffuse Intensity", &rendered_entity->instance_data.material.diffuse_tint.a, 0.01f, 0.0f, 1.0f);
+    ImGui::ColorEdit3("Diffuse Tint", &rendered_entity->instance_data.material.diffuse_tint[0]);
+    ImGui::DragFloat("Diffuse Factor", &rendered_entity->instance_data.material.diffuse_tint.a, 0.01f, 0.0f, 10.0f);
     ImGui::Spacing();
 
     // Specular properties
     ImGui::Text("Specular");
-    ImGui::ColorEdit3("Specular Color", &rendered_entity->instance_data.material.specular_tint[0]);
-    ImGui::DragFloat("Specular Intensity", &rendered_entity->instance_data.material.specular_tint.a, 0.01f, 0.0f, 1.0f);
-    ImGui::DragFloat("Shininess", &rendered_entity->instance_data.material.shininess, 1.0f, 0.0f, 100.0f);
+    ImGui::ColorEdit3("Specular Tint", &rendered_entity->instance_data.material.specular_tint[0]);
+    ImGui::DragFloat("Specular Factor", &rendered_entity->instance_data.material.specular_tint.a, 0.01f, 0.0f, 10.0f);
+    ImGui::Spacing();
+
+    // Ambient properties
+    ImGui::Text("Ambient");
+    ImGui::ColorEdit3("Ambient Tint", &rendered_entity->instance_data.material.ambient_tint[0]);
+    ImGui::DragFloat("Ambient Factor", &rendered_entity->instance_data.material.ambient_tint.a, 0.01f, 0.0f, 10.0f);
+    ImGui::Spacing();
+
+    // Shininess properties
+    ImGui::DragFloat("Shininess", &rendered_entity->instance_data.material.shininess, 1.0f, 0.0f, 2.0f);
     ImGui::Spacing();
 
     ImGui::DragDisableCursor(scene_context.window);
