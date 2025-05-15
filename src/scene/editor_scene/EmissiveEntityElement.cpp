@@ -66,7 +66,15 @@ void EditorScene::EmissiveEntityElement::add_imgui_edit_section(MasterRenderScen
     SceneElement::add_imgui_edit_section(render_scene, scene_context);
 
     add_local_transform_imgui_edit_section(render_scene, scene_context);
-    add_emissive_material_imgui_edit_section(render_scene, scene_context);
+    
+    // Emissive material properties
+    ImGui::Text("Emissive Material Properties");
+    ImGui::ColorEdit3("Emission Color", &rendered_entity->instance_data.material.emission_tint[0]);
+    ImGui::DragFloat("Emission Intensity", &rendered_entity->instance_data.material.emission_tint.a, 0.01f, 0.0f, 10.0f);
+    ImGui::Spacing();
+
+    ImGui::DragDisableCursor(scene_context.window);
+    ImGui::Spacing();
 
     ImGui::Text("Model & Textures");
     scene_context.model_loader.add_imgui_model_selector("Model Selection", rendered_entity->model);
