@@ -3,6 +3,9 @@
 
 #include "rendering/imgui/ImGuiManager.h"
 #include "scene/SceneContext.h"
+#include "rendering/cameras/CameraInterface.h"
+#include "scene/SceneInterface.h"
+#include "rendering/renders/ParticleRenderer.h"
 
 MasterRenderer::MasterRenderer() : entity_renderer(), animated_entity_renderer(), emissive_entity_renderer(), render_settings() {
     glEnable(GL_DEPTH_TEST);
@@ -19,10 +22,19 @@ void MasterRenderer::update(const Window& window) {
 }
 
 void MasterRenderer::render_scene(MasterRenderScene& render_scene, const SceneContext& scene_context) {
+    // Animate any animated entities
     render_scene.animator.animate(scene_context.window_manager.get_delta_time());
+    
+    // Render all entity types
     entity_renderer.render(render_scene.entity_scene, render_scene.light_scene);
     animated_entity_renderer.render(render_scene.animated_entity_scene, render_scene.light_scene);
     emissive_entity_renderer.render(render_scene.emissive_entity_scene);
+    
+    // Render particles
+    if (render_scene.particle_renderer) {
+        render_scene.particle_renderer->prepare_frame(render_scene.get_particle_systems(), scene_context.window, render_scene.entity_scene.global_data);
+        render_scene.particle_renderer->render(render_scene.entity_scene.global_data);
+    }
 }
 
 void MasterRenderer::sync() {

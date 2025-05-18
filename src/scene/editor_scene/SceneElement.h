@@ -10,6 +10,8 @@
 #include "../SceneInterface.h"
 #include "scene/SceneContext.h"
 
+class MasterRenderScene;
+
 namespace EditorScene {
     class SceneElement;
 

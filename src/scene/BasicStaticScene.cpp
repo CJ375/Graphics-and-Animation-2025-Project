@@ -175,7 +175,9 @@ CameraInterface& BasicStaticScene::get_camera() {
 void BasicStaticScene::close(const SceneContext& /*scene_context*/) {
     // Free up memory by dropping handles
     box_entity.reset();
-    render_scene = {};
+    
+    // Clear the render scene
+    render_scene.clear();
 }
 
 void BasicStaticScene::set_camera_mode(CameraMode new_camera_mode) {

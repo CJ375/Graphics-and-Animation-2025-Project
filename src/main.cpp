@@ -10,10 +10,14 @@
 #include "scene/BasicStaticScene.h"
 #include "scene/EditorScene.h"
 #include "scene/SceneContext.h"
+#include "utility/Random.h"
 
 #define GLFW_INCLUDE_NONE
 
 int main() {
+    // Initialize Random Number Generator
+    Random::init();
+
     // Set up the window manager, then create a window with and make it the current context.
     WindowManager::init();
     WindowManager window_manager{};

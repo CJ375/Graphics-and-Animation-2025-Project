@@ -1,4 +1,6 @@
 #include "MasterRenderScene.h"
+#include "rendering/renders/ParticleRenderer.h"
+#include "scene/editor_scene/ParticleEmitterElement.h"
 
 void MasterRenderScene::use_camera(const CameraInterface& camera_interface) {
     entity_scene.global_data.use_camera(camera_interface);
@@ -36,4 +38,42 @@ void MasterRenderScene::insert_light(std::shared_ptr<PointLight> point_light) {
 
 bool MasterRenderScene::remove_light(const std::shared_ptr<PointLight>& point_light) {
     return light_scene.point_lights.erase(point_light) != 0;
+}
+
+MasterRenderScene::MasterRenderScene() {
+    particle_renderer = std::make_unique<ParticleRenderer::ParticleRenderer>();
+}
+
+MasterRenderScene::~MasterRenderScene() {
+    // Unique_ptr will handle cleanup automatically
+}
+
+void MasterRenderScene::add_particle_system(EditorScene::ParticleEmitterElement* system) {
+    if (system) {
+        // Create a shared_ptr with a no-op deleter to avoid double deletion
+        auto shared_system = std::shared_ptr<EditorScene::ParticleEmitterElement>(system, [](EditorScene::ParticleEmitterElement*){});
+        particle_systems.push_back(shared_system);
+        particle_system_references[system] = shared_system;
+    }
+}
+
+void MasterRenderScene::remove_particle_system(EditorScene::ParticleEmitterElement* system) {
+    if (system) {
+        auto it = particle_system_references.find(system);
+        if (it != particle_system_references.end()) {
+            auto shared_system = it->second;
+            particle_systems.erase(
+                std::remove_if(particle_systems.begin(), particle_systems.end(),
+                              [&](const std::shared_ptr<EditorScene::ParticleEmitterElement>& s) {
+                                  return s == shared_system;
+                              }),
+                particle_systems.end()
+            );
+            particle_system_references.erase(it);
+        }
+    }
+}
+
+const std::vector<std::shared_ptr<EditorScene::ParticleEmitterElement>>& MasterRenderScene::get_particle_systems() const {
+    return particle_systems;
 }

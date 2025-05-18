@@ -21,7 +21,7 @@ public:
     static glm::vec3 range_vec3(const glm::vec3& min_vec, const glm::vec3& max_vec);
 
 private:
-    static std::mt19937& generator(); // Mersenne Twister engine
+    static std::mt19937 gen;
 };
 
 #endif // RANDOM_H 

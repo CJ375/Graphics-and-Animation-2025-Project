@@ -1,29 +1,24 @@
 #include "Random.h"
 
-void Random::init() {
-    // Seed the generator explicitly if called.
-    // The static generator in generator() will self-seed on first use anyway.
-    generator().seed(std::random_device()());
-}
+// Define and initialize the static member gen
+// It's default-initialized here. init() will seed it.
+std::mt19937 Random::gen;
 
-std::mt19937& Random::generator() {
-    // Using a static variable inside a function ensures it's initialized on first use.
-    // C++11 guarantees this is thread-safe.
-    // It's seeded with std::random_device for a non-deterministic start.
-    static std::mt19937 gen(std::random_device()());
-    return gen;
+void Random::init() {
+    // Seed the static member gen
+    Random::gen.seed(std::random_device()());
 }
 
 float Random::range(float min, float max) {
-    if (min >= max) return min; // Or handle error, or swap
+    if (min >= max) return min;
     std::uniform_real_distribution<float> dist(min, max);
-    return dist(generator());
+    return dist(Random::gen);
 }
 
 int Random::range(int min, int max) {
-    if (min >= max) return min; // Or handle error, or swap. For int, max is inclusive.
+    if (min >= max) return min; 
     std::uniform_int_distribution<int> dist(min, max);
-    return dist(generator());
+    return dist(Random::gen);
 }
 
 glm::vec3 Random::range_vec3(float min_val, float max_val) {

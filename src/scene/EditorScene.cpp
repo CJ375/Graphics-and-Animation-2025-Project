@@ -12,6 +12,7 @@
 #include "editor_scene/PointLightElement.h"
 #include "editor_scene/GroupElement.h"
 #include "scene/SceneContext.h"
+#include "editor_scene/ParticleEmitterElement.h"
 
 EditorScene::EditorScene::EditorScene() {
     /// Initialise the scene_root and specify nothing selected
@@ -96,6 +97,7 @@ void EditorScene::EditorScene::open(const SceneContext& scene_context) {
         {EntityElement::ELEMENT_TYPE_NAME,         [](const SceneContext& scene_context, ElementRef parent) { return EntityElement::new_default(scene_context, parent); }},
         {AnimatedEntityElement::ELEMENT_TYPE_NAME, [](const SceneContext& scene_context, ElementRef parent) { return AnimatedEntityElement::new_default(scene_context, parent); }},
         {EmissiveEntityElement::ELEMENT_TYPE_NAME, [](const SceneContext& scene_context, ElementRef parent) { return EmissiveEntityElement::new_default(scene_context, parent); }},
+        {ParticleEmitterElement::ELEMENT_TYPE_NAME, [](const SceneContext& scene_context, ElementRef parent) { return ParticleEmitterElement::new_default(scene_context, parent); }},
     };
 
     /// All the light generators, new light types must be registered here to be able to be created in the UI
@@ -110,10 +112,11 @@ void EditorScene::EditorScene::open(const SceneContext& scene_context) {
         {EmissiveEntityElement::ELEMENT_TYPE_NAME, [](const SceneContext& scene_context, ElementRef parent, const json& j) { return EmissiveEntityElement::from_json(scene_context, parent, j); }},
         {PointLightElement::ELEMENT_TYPE_NAME,     [](const SceneContext& scene_context, ElementRef parent, const json& j) { return PointLightElement::from_json(scene_context, parent, j); }},
         {GroupElement::ELEMENT_TYPE_NAME,          [](const SceneContext&, ElementRef parent, const json& j) { return GroupElement::from_json(parent, j); }},
+        {ParticleEmitterElement::ELEMENT_TYPE_NAME, [](const SceneContext& scene_context, ElementRef parent, const json& j) { return ParticleEmitterElement::from_json(scene_context, parent, j); }},
     };
 }
 
-std::pair<TickResponseType, std::shared_ptr<SceneInterface>> EditorScene::EditorScene::tick(float /*delta_time*/, const SceneContext& scene_context) {
+std::pair<TickResponseType, std::shared_ptr<SceneInterface>> EditorScene::EditorScene::tick(float delta_time, const SceneContext& scene_context) {
     /// If the `Esc` key was pressed this tick, then tell the scene manager to exit
     if (scene_context.window.was_key_pressed(GLFW_KEY_ESCAPE)) {
         return {TickResponseType::Exit, nullptr};
@@ -135,6 +138,13 @@ std::pair<TickResponseType, std::shared_ptr<SceneInterface>> EditorScene::Editor
     if (scene_context.imgui_enabled) {
         add_imgui_selection_editor(scene_context);
         add_imgui_scene_hierarchy(scene_context);
+    }
+
+    // Particle systems
+    for (const auto& particle_system : render_scene.get_particle_systems()) {
+        if (particle_system && particle_system->enabled) {
+            particle_system->tick_particles(delta_time, scene_context);
+        }
     }
 
     /// Default to telling the SceneManager to continue ticking
@@ -168,7 +178,8 @@ CameraInterface& EditorScene::EditorScene::get_camera() {
 
 void EditorScene::EditorScene::close(const SceneContext& /*scene_context*/) {
     // Free up memory by dropping handles
-    render_scene = {};
+    render_scene.clear();
+    
     scene_root->clear();
 }
 
@@ -604,11 +615,16 @@ void EditorScene::EditorScene::load_from_json_file(const SceneContext& scene_con
     auto old_path = save_path;
     save_path = path;
 
-    MasterRenderScene old_render_scene{};
-    ElementList old_scene_root = std::make_shared<std::list<std::unique_ptr<SceneElement>>>(std::list<std::unique_ptr<SceneElement>>{});;
+    // Save the state of existing scene
+    ElementList old_scene_root = std::make_shared<std::list<std::unique_ptr<SceneElement>>>(std::list<std::unique_ptr<SceneElement>>{});
     auto old_selected_element = selected_element;
-    std::swap(render_scene, old_render_scene);
+    
+    // Clear the current render scene using the clear() method
+    render_scene.clear();
+    
+    // Swap the scene root
     std::swap(scene_root, old_scene_root);
+    
     try {
         selected_element = NullElementRef;
 
@@ -624,7 +640,17 @@ void EditorScene::EditorScene::load_from_json_file(const SceneContext& scene_con
         }
     } catch (const std::exception& e) {
         std::swap(save_path, old_path);
-        render_scene = std::move(old_render_scene);
+        
+        // Clear any partial data loaded into render_scene
+        render_scene.clear();
+        
+        // Add back the original elements from old_scene_root
+        for (auto& element : *old_scene_root) {
+            if (element->enabled) {
+                element->add_to_render_scene(render_scene);
+            }
+        }
+        
         scene_root = old_scene_root;
         selected_element = old_selected_element;
 

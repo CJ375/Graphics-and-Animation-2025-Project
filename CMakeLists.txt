@@ -20,6 +20,7 @@ add_executable(cits3003_project
         src/rendering/scene/GlobalData.h
         src/rendering/scene/Lights.cpp
         src/rendering/renders/MasterRenderer.cpp
+        src/rendering/renders/ParticleRenderer.cpp
         src/rendering/renders/shaders/ShaderInterface.cpp
         src/rendering/renders/shaders/BaseEntityShader.cpp
         src/rendering/renders/shaders/BaseLitEntityShader.cpp
@@ -39,6 +40,7 @@ add_executable(cits3003_project
         src/utility/JsonHelper.h
         src/utility/HelperTypes.h
         src/utility/SyncManager.cpp
+        src/utility/Random.cpp
         src/scene/SceneInterface.h
         src/scene/BasicStaticScene.cpp
         src/scene/BasicStaticScene.h
@@ -53,6 +55,7 @@ add_executable(cits3003_project
         src/scene/editor_scene/GroupElement.cpp
         src/scene/editor_scene/EmissiveEntityElement.cpp
         src/scene/editor_scene/SceneElement.cpp
+        src/scene/editor_scene/ParticleEmitterElement.cpp
 )
 
 target_include_directories(cits3003_project PRIVATE src)
