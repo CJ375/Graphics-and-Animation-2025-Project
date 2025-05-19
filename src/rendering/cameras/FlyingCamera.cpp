@@ -101,7 +101,12 @@ void FlyingCamera::update(const Window& window, float dt, bool controlsEnabled) 
         glm::translate(-position);
     inverse_view_matrix = glm::inverse(view_matrix);
 
-    projection_matrix = glm::infinitePerspective(fov, window.get_framebuffer_aspect_ratio(), 1.0f);
+    // TASK C FIX: Use regular perspective projection with near and far plane
+    // Changed from glm::infinitePerspective to glm::perspective
+    // Now uses the 'near' variable that's already defined and exposed in UI
+    // Added reasonable far plane distance for proper clipping
+    float far_plane = 1000.0f; // You might want to make this configurable too
+    projection_matrix = glm::perspective(fov, window.get_framebuffer_aspect_ratio(), near, far_plane);
     inverse_projection_matrix = glm::inverse(projection_matrix);
 }
 
@@ -132,6 +137,8 @@ void FlyingCamera::add_imgui_options_section(const SceneContext& scene_context) 
     ImGui::DragDisableCursor(scene_context.window);
     yaw = glm::radians(glm::mod(yaw_degrees, 360.0f));
 
+    // The near plane slider is already here and working!
+    // This will now actually affect the projection matrix
     ImGui::SliderFloat("Near Plane", &near, 0.001f, 1.0f, "%.3f", ImGuiSliderFlags_Logarithmic);
 
     float fov_degrees = glm::degrees(fov);
