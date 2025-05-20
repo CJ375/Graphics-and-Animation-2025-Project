@@ -101,9 +101,7 @@ void FlyingCamera::update(const Window& window, float dt, bool controlsEnabled) 
         glm::translate(-position);
     inverse_view_matrix = glm::inverse(view_matrix);
 
-    // TASK C: Use regular perspective projection with near and far plane
-    float far_plane = 1000.0f;
-    projection_matrix = glm::perspective(fov, window.get_framebuffer_aspect_ratio(), near, far_plane);
+    projection_matrix = glm::infinitePerspective(fov, window.get_framebuffer_aspect_ratio(), near); // Task C
     inverse_projection_matrix = glm::inverse(projection_matrix);
 }
 
