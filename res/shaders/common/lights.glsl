@@ -1,4 +1,3 @@
-
 #ifndef NUM_PL
 #define NUM_PL 0
 #endif
@@ -30,9 +29,9 @@ const float ambient_factor = 0.002f;
 void point_light_calculation(PointLightData point_light, LightCalculatioData calculation_data, float shininess, inout vec3 total_diffuse, inout vec3 total_specular, inout vec3 total_ambient) {
     vec3 ws_light_offset = point_light.position - calculation_data.ws_frag_position;
     
-    // TASK F: Calculate distance and attenuation
+    // TASK F: Calculate distance and attenuation - trial and error to get final formula
     float distance = length(ws_light_offset);
-    float attenuation = 1.0 / (1.0 + 0.09 * distance + 0.032 * distance * distance);
+    float attenuation = 1.0 / (1.0 + 0.09 * distance + 0.032 * distance * distance);  // https://learnwebgl.brown37.net/09_lights/lights_attenuation.html
     
     // Ambient
     vec3 ambient_component = ambient_factor * point_light.colour;
