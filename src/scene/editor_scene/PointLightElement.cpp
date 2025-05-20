@@ -40,6 +40,17 @@ std::unique_ptr<EditorScene::PointLightElement> EditorScene::PointLightElement::
     light_element->light->colour = j["colour"];
     light_element->visible = j["visible"];
     light_element->visual_scale = j["visual_scale"];
+    
+    // Load attenuation parameters if they exist, otherwise use defaults - Task F bonus challenge
+    if (j.contains("constant_attenuation")) {
+        light_element->light->constant_attenuation = j["constant_attenuation"];
+    }
+    if (j.contains("linear_attenuation")) {
+        light_element->light->linear_attenuation = j["linear_attenuation"];
+    }
+    if (j.contains("quadratic_attenuation")) {
+        light_element->light->quadratic_attenuation = j["quadratic_attenuation"];
+    }
 
     light_element->update_instance_data();
     return light_element;
@@ -47,10 +58,14 @@ std::unique_ptr<EditorScene::PointLightElement> EditorScene::PointLightElement::
 
 json EditorScene::PointLightElement::into_json() const {
     return {
-        {"position",     position},
-        {"colour",       light->colour},
-        {"visible",      visible},
+        // Task F bonus challenge - parameterisation
+        {"position", position},
+        {"colour", light->colour},
+        {"visible", visible},
         {"visual_scale", visual_scale},
+        {"constant_attenuation", light->constant_attenuation},
+        {"linear_attenuation", light->linear_attenuation},
+        {"quadratic_attenuation", light->quadratic_attenuation}
     };
 }
 
@@ -68,6 +83,15 @@ void EditorScene::PointLightElement::add_imgui_edit_section(MasterRenderScene& r
     transformUpdated |= ImGui::ColorEdit3("Colour", &light->colour[0]);
     ImGui::Spacing();
     ImGui::DragFloat("Intensity", &light->colour.a, 0.01f, 0.0f, FLT_MAX);
+    ImGui::DragDisableCursor(scene_context.window);
+
+    // Task F bonus challenge - UI
+    ImGui::Spacing();
+    ImGui::Text("Attenuation");
+    // Task F bonus challenge
+    transformUpdated |= ImGui::DragFloat("Constant", &light->constant_attenuation, 0.01f, 0.0f, FLT_MAX, "%.3f");
+    transformUpdated |= ImGui::DragFloat("Linear", &light->linear_attenuation, 0.001f, 0.0f, FLT_MAX, "%.3f");
+    transformUpdated |= ImGui::DragFloat("Quadratic", &light->quadratic_attenuation, 0.001f, 0.0f, FLT_MAX, "%.3f");
     ImGui::DragDisableCursor(scene_context.window);
 
     ImGui::Spacing();
