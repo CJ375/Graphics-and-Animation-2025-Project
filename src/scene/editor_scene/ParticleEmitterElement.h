@@ -7,7 +7,7 @@
 #include <vector>
 #include <string>
 #include <glm/glm.hpp>
-#include <nlohmann/json.hpp> // For json
+#include <nlohmann/json.hpp>
 
 using json = nlohmann::json;
 

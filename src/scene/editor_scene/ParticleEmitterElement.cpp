@@ -9,9 +9,7 @@ namespace EditorScene {
 
 ParticleEmitterElement::ParticleEmitterElement(const ElementRef& parent, std::string name)
     : SceneElement(parent, std::move(name)), 
-      LocalTransformComponent(glm::vec3(0.0f), glm::vec3(0.0f), glm::vec3(1.0f)) {
-    // Particles vector is initialized empty by default
-    // textureHandle will be loaded by new_default or from_json
+      LocalTransformComponent(glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f), glm::vec3(1.0f)) {
 }
 
 
@@ -128,7 +126,10 @@ const char* ParticleEmitterElement::element_type_name() const {
 }
 
 void ParticleEmitterElement::tick_particles(float deltaTime, const SceneContext&) {
-    if (!enabled) return;
+    if (!enabled) {
+        std::cout << "Emitter " << name << " disabled." << std::endl;
+        return;
+    }
 
     emissionTimer += deltaTime;
     int particlesToEmit = static_cast<int>(emissionTimer * emissionRate);
@@ -136,8 +137,9 @@ void ParticleEmitterElement::tick_particles(float deltaTime, const SceneContext&
         emissionTimer -= static_cast<float>(particlesToEmit) / emissionRate;
     }
 
-    // Force emit at least 5 particles for testing
-    particlesToEmit = std::max(particlesToEmit, 5);
+    if (particlesToEmit > 0) {
+        std::cout << "Emitter " << name << " emitting " << particlesToEmit << " particles." << std::endl;
+    }
     
     glm::vec3 emitter_position = glm::vec3(transform[3]);
 
@@ -146,7 +148,7 @@ void ParticleEmitterElement::tick_particles(float deltaTime, const SceneContext&
         p.totalLife = Random::range(particleLifespanMin, particleLifespanMax);
         p.lifeRemaining = p.totalLife;
 
-        float spread = 1.0f;
+        float spread = 0.5f;
         glm::vec3 randomOffset(
             Random::range(-spread, spread),
             Random::range(-spread, spread),
@@ -159,7 +161,7 @@ void ParticleEmitterElement::tick_particles(float deltaTime, const SceneContext&
             p.position = randomOffset;
         }
         
-        // Initial velocity
+        // Initial particle velocity
         glm::vec3 randomVelocity;
         randomVelocity.x = Random::range(initialVelocityMin.x, initialVelocityMax.x);
         randomVelocity.y = Random::range(initialVelocityMin.y, initialVelocityMax.y);
@@ -167,18 +169,22 @@ void ParticleEmitterElement::tick_particles(float deltaTime, const SceneContext&
  
         p.velocity = randomVelocity;
 
-        // Make particles larger for visibility
-        p.size = Random::range(initialSizeMin, initialSizeMax) * 10.0f;
+        // Size from UI parameters
+        p.size = Random::range(initialSizeMin, initialSizeMax);
         
-        // Make particles brighter
+        // Colour from UI parameters
         float colorLerpFactor = Random::range(0.0f, 1.0f);
-        
-        // White particles at full opacity
-        glm::vec4 brightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-        p.color = brightColor;
+        p.color = glm::mix(initialColorStart, initialColorEnd, colorLerpFactor);
 
         particles.push_back(p);
+
+        if (i == 0) {
+            std::cout << "[Emitter: " << name << "] New particle: pos(" << p.position.x << "," << p.position.y << "," << p.position.z 
+                      << "), size(" << p.size << "), life(" << p.lifeRemaining << "), color.a(" << p.color.a << ")" << std::endl;
+        }
     }
+
+    bool first_updated = true;
 
     for (size_t i = 0; i < particles.size();) {
         Particle& p = particles[i];
@@ -187,17 +193,21 @@ void ParticleEmitterElement::tick_particles(float deltaTime, const SceneContext&
         if (p.lifeRemaining <= 0.0f) {
             particles.erase(particles.begin() + i);
         } else {
+            if (first_updated) {
+                std::cout << "[Emitter: " << name << "] Updating particle " << i << std::endl;
+                first_updated = false;
+            }
+
             p.velocity += gravity * deltaTime;
             p.position += p.velocity * deltaTime;
             
             float lifeRatio = 1.0f - (p.lifeRemaining / p.totalLife);
-            glm::vec4 colorAtEmission = p.color;
-
-            if (lifeRatio > 0.8f) {
-                float fadeAlpha = (1.0f - lifeRatio) * 5.0f;
-                p.color.a = fadeAlpha;
-            }
             
+            // Colour interpolation between initial and end color based on lifetime
+            glm::vec4 initialColor = p.color;
+            p.color = glm::mix(initialColor, endColor, lifeRatio);
+            
+            // Size interpolation based on end size factor
             float sizeAtEmission = p.size;
             p.size = glm::mix(sizeAtEmission, sizeAtEmission * endSizeFactor, lifeRatio);
             

@@ -1,26 +1,12 @@
 #include "ParticleRenderer.h"
 #include "rendering/cameras/CameraInterface.h"
-#include <glm/gtc/matrix_transform.hpp> // For billboard math
-#include <glm/gtc/type_ptr.hpp> // For glm::value_ptr
-#include <iostream> // For error messages
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <iostream>
 #include <glad/gl.h>
 #include "scene/editor_scene/ParticleEmitterElement.h"
 
 namespace ParticleRenderer {
-
-// --- ParticleVertexData --- 
-void ParticleVertexData::setup_attrib_pointers() {
-    // Position
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(ParticleVertexData), (void*)offsetof(ParticleVertexData, position));
-    // Texture Coordinates
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(ParticleVertexData), (void*)offsetof(ParticleVertexData, tex_coord));
-    // Color
-    glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(ParticleVertexData), (void*)offsetof(ParticleVertexData, color));
-}
-
 
 ParticleShader::ParticleShader() : 
     ShaderInterface("Particle", "particle/vert.glsl", "particle/frag.glsl", 
@@ -32,33 +18,35 @@ bool ParticleShader::init_shader() {
 }
 
 void ParticleShader::get_uniforms_set_bindings() {
-    view_matrix_location = get_uniform_location("view_matrix");
     projection_matrix_location = get_uniform_location("projection_matrix");
-    particle_texture_sampler_location = get_uniform_location("particle_texture_sampler");
-    
-    if (particle_texture_sampler_location != -1) {
-        set_binding("particle_texture_sampler", 0); // Texture unit 0
-    }
 }
 
-
 ParticleRenderer::ParticleRenderer() {
-    particle_vertex_buffer_data.reserve(MAX_PARTICLES_PER_DRAW * 6); // 6 vertices per particle (quad)
-
-    // Create VAO and VBO
+    // Create VAO
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
+    // Create VBO for particle data
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
-    // Allocate buffer data
-    glBufferData(GL_ARRAY_BUFFER, MAX_PARTICLES_PER_DRAW * 6 * sizeof(ParticleVertexData), nullptr, GL_DYNAMIC_DRAW);
+    // Allocate buffer for maximum number of particles
+    glBufferData(GL_ARRAY_BUFFER, MAX_PARTICLES_PER_DRAW * sizeof(ParticleInstance), nullptr, GL_DYNAMIC_DRAW);
 
-    ParticleVertexData::setup_attrib_pointers();
+    // Position
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(ParticleInstance), (void*)offsetof(ParticleInstance, position));
+    
+    // Size
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(ParticleInstance), (void*)offsetof(ParticleInstance, size));
+    
+    // Colour
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(ParticleInstance), (void*)offsetof(ParticleInstance, color));
 
-    glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
 }
 
 ParticleRenderer::~ParticleRenderer() {
@@ -70,109 +58,104 @@ ParticleRenderer::~ParticleRenderer() {
         glDeleteVertexArrays(1, &vao);
         vao = 0;
     }
-    
 }
 
 void ParticleRenderer::prepare_frame(const std::vector<std::shared_ptr<EditorScene::ParticleEmitterElement>>& particle_systems, const Window& window, const BaseEntityGlobalData& global_data) {
-    particle_vertex_buffer_data.clear();
-    
-    // Use actual camera orientation vectors for billboarding from global_data
-    glm::vec3 camera_right_ws = global_data.camera_right;
-    glm::vec3 camera_up_ws    = global_data.camera_up;
-    // We rely on CameraInterface providing orthonormal vectors for front, up, right.
+    std::vector<ParticleInstance> instances;
+    instances.reserve(MAX_PARTICLES_PER_DRAW);
+
+    std::cout << "[ParticleRenderer] prepare_frame called with " << particle_systems.size() << " particle systems." << std::endl;
     
     for (const auto& system : particle_systems) {
-        if (!system || !system->enabled || !system->textureHandle) continue;
+        if (!system || !system) {
+            std::cout << "[ParticleRenderer] System " << system->name << " encountered a null or disabled system." << std::endl;
+            continue;
+        };
 
-        currentTextureHandle = system->textureHandle;
+        if (!system->enabled) {
+            std::cout << "[ParticleRenderer] System " << system->name << " is disabled." << std::endl;
+            continue;
+        }
 
-        const auto& particles = system->particles;
+        std::cout << "[Renderer] Processing system: " << system->name << "with" << system->particles.size() << " particles." << std::endl;
 
-        for (const auto& p : particles) {
-            if (particle_vertex_buffer_data.size() + 6 > MAX_PARTICLES_PER_DRAW * 6) {
+        if (system->particles.empty() && system->enabled) {
+            std::cout << "[Renderer] System " << system->name << " is enabled but has no particles." << std::endl;
+        }
+
+        glm::mat4 emitter_transform = glm::mat4(1.0f);
+        /*
+        if (!system->worldSpaceParticles) {
+            // If particles are in local space, their positions in ParticleInstance should be relative to the emitter.
+            // The emitter's transform will be applied in the shader *if* we decide to pass it.
+            // For now, assuming a_position IS world space OR the shader handles local->world.
+            // The current vert shader expects a_position to be world.
+            // So if particles are local, their positions need to be transformed to world here.
+        }
+        */
+
+
+        for (const auto& p : system->particles) {
+            if (instances.size() >= MAX_PARTICLES_PER_DRAW) {
+                std::cout << "[Renderer] MAX_PARTICLES_PER_DRAW reached." << std::endl;
                 break; 
             }
 
-            glm::vec3 particle_center_ws = p.position;
-            
-            bool hasParent = system->parent != EditorScene::NullElementRef;
-            bool isWorldSpace = system->worldSpaceParticles;
-            
-            if (!isWorldSpace && hasParent) {
-                 const auto& element = *(system->parent);
-                 glm::mat4 parent_transform_matrix = element->transform; 
-                 if (!isWorldSpace) {
-                    particle_center_ws = glm::vec3(system->transform * glm::vec4(p.position, 1.0f));
-                 }
+            glm::vec3 final_position = p.position;
+            if (!system->worldSpaceParticles) {
+                 final_position = glm::vec3(system->transform * glm::vec4(p.position, 1.0f));
             }
-            
-            float current_size = p.size;
-            
-            glm::vec3 half_right = camera_right_ws * (current_size * 0.5f);
-            glm::vec3 half_up = camera_up_ws * (current_size * 0.5f);
 
-            glm::vec3 v0_pos = particle_center_ws - half_right - half_up;
-            glm::vec3 v1_pos = particle_center_ws + half_right - half_up;
-            glm::vec3 v2_pos = particle_center_ws - half_right + half_up;
-            glm::vec3 v3_pos = particle_center_ws + half_right + half_up;
 
-            particle_vertex_buffer_data.push_back({v0_pos, glm::vec2(0,0), p.color});
-            particle_vertex_buffer_data.push_back({v1_pos, glm::vec2(1,0), p.color});
-            particle_vertex_buffer_data.push_back({v2_pos, glm::vec2(0,1), p.color});
-
-            particle_vertex_buffer_data.push_back({v1_pos, glm::vec2(1,0), p.color});
-            particle_vertex_buffer_data.push_back({v3_pos, glm::vec2(1,1), p.color});
-            particle_vertex_buffer_data.push_back({v2_pos, glm::vec2(0,1), p.color});
+            // Create particle instance
+            instances.push_back({
+                final_position, // Use potentially transformed position
+                p.size,
+                p.color
+            });
         }
-        
-        if (particle_vertex_buffer_data.size() + 6 > MAX_PARTICLES_PER_DRAW * 6) break;
+        if (instances.size() >= MAX_PARTICLES_PER_DRAW) {
+            break;
+        }
     }
 
-    if (!particle_vertex_buffer_data.empty()) {
+    // Upload particle data to GPU
+    if (!instances.empty()) {
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
-        glBufferSubData(GL_ARRAY_BUFFER, 0, particle_vertex_buffer_data.size() * sizeof(ParticleVertexData), particle_vertex_buffer_data.data());
+        glBufferSubData(GL_ARRAY_BUFFER, 0, instances.size() * sizeof(ParticleInstance), instances.data());
         glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
+
+    num_particles_to_render = instances.size();
 }
 
 void ParticleRenderer::render(const BaseEntityGlobalData& global_data) {
-    if (particle_vertex_buffer_data.empty()) {
+    if (num_particles_to_render == 0) {
         return;
     }
 
     shader.use();
 
-    // For view matrix, use identity matrix
-    glm::mat4 identity_matrix = glm::mat4(1.0f);
-    glUniformMatrix4fv(shader.view_matrix_location, 1, GL_FALSE, glm::value_ptr(identity_matrix));
-    glUniformMatrix4fv(shader.projection_matrix_location, 1, GL_FALSE, glm::value_ptr(global_data.projection_view_matrix));
+    // Set view and projection matrices
+    glUniformMatrix4fv(shader.projection_view_matrix_location, 1, GL_FALSE, glm::value_ptr(global_data.projection_view_matrix));
     
-    // Disable depth testing completely for particles
-    glDisable(GL_DEPTH_TEST);
-    
-    // Set up blending
+    // Set up blending for particles
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    // Bind the particle texture
-    if (currentTextureHandle) {
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, currentTextureHandle->get_texture_id());
-    }
-
-    // Update VBO with billboarded vertices
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferSubData(GL_ARRAY_BUFFER, 0, particle_vertex_buffer_data.size() * sizeof(ParticleVertexData), particle_vertex_buffer_data.data());
     
+    // Enable point size
+    glEnable(GL_PROGRAM_POINT_SIZE);
+    
+    // Draw particles
     glBindVertexArray(vao);
-    glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(particle_vertex_buffer_data.size()));
+    glDrawArrays(GL_POINTS, 0, num_particles_to_render);
+    glGetError();
     glBindVertexArray(0);
 
     // Restore OpenGL state
-    glEnable(GL_DEPTH_TEST);
+    glDisable(GL_PROGRAM_POINT_SIZE);
     glDisable(GL_BLEND);
-
-    glUseProgram(0); // Unbind shader
+    glUseProgram(0);
 }
 
 bool ParticleRenderer::refresh_shaders() {

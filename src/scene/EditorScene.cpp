@@ -13,7 +13,7 @@
 #include "editor_scene/DirectionalLightElement.h"  // Task H - Directional Light Element
 #include "editor_scene/GroupElement.h"
 #include "scene/SceneContext.h"
-#include "editor_scene/ParticleEmitterElement.h"
+#include "editor_scene/ParticleEmitterElement.h" // Task I - Particle Emitter Element
 
 EditorScene::EditorScene::EditorScene() {
     /// Initialise the scene_root and specify nothing selected

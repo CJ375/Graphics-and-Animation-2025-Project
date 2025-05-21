@@ -20,12 +20,10 @@ namespace ParticleRenderer {
     // Maximum number of particles to render in a single draw call
     static constexpr size_t MAX_PARTICLES_PER_DRAW = 10000;
 
-    struct ParticleVertexData {
+    struct ParticleInstance {
         glm::vec3 position;
-        glm::vec2 tex_coord;
+        float     size;
         glm::vec4 color;
-
-        static void setup_attrib_pointers();
     };
 
     class ParticleShader : public ShaderInterface {
@@ -35,7 +33,7 @@ namespace ParticleRenderer {
         // Uniform locations
         int view_matrix_location{};
         int projection_matrix_location{};
-        int particle_texture_sampler_location{};
+        int projection_view_matrix_location{};
         
     private:
         bool init_shader();
@@ -44,11 +42,8 @@ namespace ParticleRenderer {
 
     class ParticleRenderer {
         ParticleShader shader;
-        unsigned int vao{};
-        unsigned int vbo{};
-        std::vector<ParticleVertexData> particle_vertex_buffer_data;
-        std::vector<float> particle_sizes;
-        std::shared_ptr<TextureHandle> currentTextureHandle;
+        unsigned int vao{0}, vbo{0};
+        size_t num_particles_to_render{0};
 
     public:
         ParticleRenderer();
