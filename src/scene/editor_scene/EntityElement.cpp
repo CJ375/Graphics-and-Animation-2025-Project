@@ -1,12 +1,6 @@
 #include "EntityElement.h"
-
-
-
 #include "rendering/imgui/ImGuiManager.h"
-
 #include "scene/SceneContext.h"
-
-
 
 std::unique_ptr<EditorScene::EntityElement> EditorScene::EntityElement::new_default(const SceneContext& scene_context, ElementRef parent) {
     auto rendered_entity = EntityRenderer::Entity::create(
@@ -19,17 +13,12 @@ std::unique_ptr<EditorScene::EntityElement> EditorScene::EntityElement::new_defa
                 {1.0f, 1.0f, 1.0f, 1.0f},
                 512.0f,
             }
-
         },
-
         EntityRenderer::RenderData{
             scene_context.texture_loader.default_white_texture(),
             scene_context.texture_loader.default_white_texture()
         }
-
     );
-
-
 
     auto new_entity = std::make_unique<EntityElement>(
         parent,
@@ -37,20 +26,14 @@ std::unique_ptr<EditorScene::EntityElement> EditorScene::EntityElement::new_defa
         glm::vec3{0.0f},
         glm::vec3{0.0f},
         glm::vec3{1.0f},
-
         rendered_entity
     );
 
     new_entity->update_instance_data();
-
     return new_entity;
-
 }
 
-
-
 std::unique_ptr<EditorScene::EntityElement> EditorScene::EntityElement::from_json(const SceneContext& scene_context, EditorScene::ElementRef parent, const json& j) {
-
     auto new_entity = new_default(scene_context, parent);
     new_entity->update_local_transform_from_json(j);
     new_entity->update_material_from_json(j);
@@ -59,37 +42,32 @@ std::unique_ptr<EditorScene::EntityElement> EditorScene::EntityElement::from_jso
     new_entity->rendered_entity->render_data.diffuse_texture = texture_from_json(scene_context, j["diffuse_texture"]);
     new_entity->rendered_entity->render_data.specular_map_texture = texture_from_json(scene_context, j["specular_map_texture"]);
 
+    // Load texture scale if present in the JSON, otherwise use default (1.0, 1.0)
+    if (j.contains("texture_scale")) {
+        new_entity->texture_scale.x = j["texture_scale"][0];
+        new_entity->texture_scale.y = j["texture_scale"][1];
+    }
+
     new_entity->update_instance_data();
-
     return new_entity;
-
 }
-
-
 
 json EditorScene::EntityElement::into_json() const {
     if (!rendered_entity->model->get_filename().has_value()) {
         return {
             {"error", Formatter() << "Entity [" << name << "]'s model does not have a filename so can not be exported, and has been skipped."}
         };
-
     }
-
-
 
     return {
         local_transform_into_json(),
         material_into_json(),
-
         {"model", rendered_entity->model->get_filename().value()},
         {"diffuse_texture", texture_to_json(rendered_entity->render_data.diffuse_texture)},
         {"specular_map_texture", texture_to_json(rendered_entity->render_data.specular_map_texture)},
-
+        {"texture_scale", {texture_scale.x, texture_scale.y}}, // Add texture scale to JSON
     };
-
 }
-
-
 
 void EditorScene::EntityElement::add_imgui_edit_section(MasterRenderScene& render_scene, const SceneContext& scene_context) {
     ImGui::Text("Entity");
@@ -98,7 +76,6 @@ void EditorScene::EntityElement::add_imgui_edit_section(MasterRenderScene& rende
     add_material_imgui_edit_section(render_scene, scene_context);
 
     // Task D - Material Properties
-
     // Diffuse properties
     ImGui::Text("Diffuse");
     ImGui::ColorEdit3("Diffuse Tint", &rendered_entity->instance_data.material.diffuse_tint[0]);
@@ -120,6 +97,11 @@ void EditorScene::EntityElement::add_imgui_edit_section(MasterRenderScene& rende
     // Shininess properties
     ImGui::DragFloat("Shininess", &rendered_entity->instance_data.material.shininess, 1.0f, 0.0f, 150.0f);
     ImGui::Spacing();
+    
+    // Task E - Add Texture Scaling controls
+    ImGui::Text("Texture Scaling");
+    ImGui::DragFloat2("Scale", &texture_scale[0], 0.1f, 0.1f, 10.0f);
+    ImGui::Spacing();
 
     ImGui::DragDisableCursor(scene_context.window);
     ImGui::Spacing();
@@ -130,8 +112,6 @@ void EditorScene::EntityElement::add_imgui_edit_section(MasterRenderScene& rende
     scene_context.texture_loader.add_imgui_texture_selector("Specular Map", rendered_entity->render_data.specular_map_texture, false);
 }
 
-
-
 void EditorScene::EntityElement::update_instance_data() {
     transform = calc_model_matrix();
 
@@ -140,13 +120,13 @@ void EditorScene::EntityElement::update_instance_data() {
         transform = (*parent)->transform * transform;
     }
 
-
-
     rendered_entity->instance_data.model_matrix = transform;
     rendered_entity->instance_data.material = material;
+    
+    // Add texture scale to your rendering data structure - may need to be adjusted
+    // based on how your renderer is structured
+    rendered_entity->texture_scale = texture_scale;
 }
-
-
 
 const char* EditorScene::EntityElement::element_type_name() const {
     return ELEMENT_TYPE_NAME;
