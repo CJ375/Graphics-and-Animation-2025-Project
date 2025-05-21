@@ -10,6 +10,7 @@
 #include "editor_scene/AnimatedEntityElement.h"
 #include "editor_scene/EmissiveEntityElement.h"
 #include "editor_scene/PointLightElement.h"
+#include "editor_scene/DirectionalLightElement.h"  // Task H - Directional Light Element
 #include "editor_scene/GroupElement.h"
 #include "scene/SceneContext.h"
 #include "editor_scene/ParticleEmitterElement.h"
@@ -103,6 +104,7 @@ void EditorScene::EditorScene::open(const SceneContext& scene_context) {
     /// All the light generators, new light types must be registered here to be able to be created in the UI
     light_generators = {
         {PointLightElement::ELEMENT_TYPE_NAME, [](const SceneContext& scene_context, ElementRef parent) { return PointLightElement::new_default(scene_context, parent); }},
+        {DirectionalLightElement::ELEMENT_TYPE_NAME, [](const SceneContext& scene_context, ElementRef parent) { return DirectionalLightElement::new_default(scene_context, parent); }},  // Task H - Directional Light Element
     };
 
     /// All the element generators, new element types must be registered here to be able to be loaded from json
@@ -111,6 +113,7 @@ void EditorScene::EditorScene::open(const SceneContext& scene_context) {
         {AnimatedEntityElement::ELEMENT_TYPE_NAME, [](const SceneContext& scene_context, ElementRef parent, const json& j) { return AnimatedEntityElement::from_json(scene_context, parent, j); }},
         {EmissiveEntityElement::ELEMENT_TYPE_NAME, [](const SceneContext& scene_context, ElementRef parent, const json& j) { return EmissiveEntityElement::from_json(scene_context, parent, j); }},
         {PointLightElement::ELEMENT_TYPE_NAME,     [](const SceneContext& scene_context, ElementRef parent, const json& j) { return PointLightElement::from_json(scene_context, parent, j); }},
+        {DirectionalLightElement::ELEMENT_TYPE_NAME, [](const SceneContext& scene_context, ElementRef parent, const json& j) { return DirectionalLightElement::from_json(scene_context, parent, j); }},  // Task H - Directional Light Element
         {GroupElement::ELEMENT_TYPE_NAME,          [](const SceneContext&, ElementRef parent, const json& j) { return GroupElement::from_json(parent, j); }},
         {ParticleEmitterElement::ELEMENT_TYPE_NAME, [](const SceneContext& scene_context, ElementRef parent, const json& j) { return ParticleEmitterElement::from_json(scene_context, parent, j); }},
     };

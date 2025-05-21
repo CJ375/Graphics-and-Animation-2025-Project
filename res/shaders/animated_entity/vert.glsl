@@ -20,7 +20,7 @@ uniform mat4 model_matrix;
 // Animation Data
 uniform mat4 bone_transforms[BONE_TRANSFORMS];
 
-// Global data
+// Global Data
 uniform mat4 projection_view_matrix;
 
 void main() {
@@ -37,9 +37,10 @@ void main() {
     mat4 animation_matrix = model_matrix * bone_transform;
     mat3 normal_matrix = cofactor(animation_matrix);
 
-    vec3 calculated_ws_position = (animation_matrix * vec4(vertex_position, 1.0f)).xyz;
+    vec3 calculated_ws_position = (animation_matrix * vec4(vertex_position, 1.0f)).xyz;    vec3 ws_normal = normalize(normal_matrix * normal);
     vec3 calculated_ws_normal = normalize(normal_matrix * normal);
-
+    
+    // Pass data to fragment shader
     vertex_data_out.ws_position = calculated_ws_position;
     vertex_data_out.ws_normal = calculated_ws_normal;
     vertex_data_out.texture_coordinate = texture_coordinate;

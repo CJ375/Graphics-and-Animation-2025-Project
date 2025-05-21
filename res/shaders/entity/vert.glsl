@@ -22,9 +22,10 @@ uniform mat4 projection_view_matrix;
 void main() {
     // Transform vertices
     vec3 calculated_ws_position = (model_matrix * vec4(vertex_position, 1.0f)).xyz;
-    
+
     vec3 calculated_ws_normal = normalize(normal_matrix * normal); 
 
+    // Pass data to fragment shader
     vertex_data_out.ws_position = calculated_ws_position;
     vertex_data_out.ws_normal = calculated_ws_normal;
     vertex_data_out.texture_coordinate = texture_coordinate;

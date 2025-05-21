@@ -9,35 +9,22 @@
 
 
 std::unique_ptr<EditorScene::EntityElement> EditorScene::EntityElement::new_default(const SceneContext& scene_context, ElementRef parent) {
-
     auto rendered_entity = EntityRenderer::Entity::create(
-
         scene_context.model_loader.load_from_file<EntityRenderer::VertexData>("cube.obj"),
-
         EntityRenderer::InstanceData{
-
             glm::mat4{}, // Set via update_instance_data()
-
             EntityRenderer::EntityMaterial{
-
                 {1.0f, 1.0f, 1.0f, 1.0f},
-
                 {1.0f, 1.0f, 1.0f, 1.0f},
-
                 {1.0f, 1.0f, 1.0f, 1.0f},
-
                 512.0f,
-
             }
 
         },
 
         EntityRenderer::RenderData{
-
             scene_context.texture_loader.default_white_texture(),
-
             scene_context.texture_loader.default_white_texture()
-
         }
 
     );
@@ -45,22 +32,14 @@ std::unique_ptr<EditorScene::EntityElement> EditorScene::EntityElement::new_defa
 
 
     auto new_entity = std::make_unique<EntityElement>(
-
         parent,
-
         "New Entity",
-
         glm::vec3{0.0f},
-
         glm::vec3{0.0f},
-
         glm::vec3{1.0f},
 
         rendered_entity
-
     );
-
-
 
     new_entity->update_instance_data();
 
@@ -73,22 +52,12 @@ std::unique_ptr<EditorScene::EntityElement> EditorScene::EntityElement::new_defa
 std::unique_ptr<EditorScene::EntityElement> EditorScene::EntityElement::from_json(const SceneContext& scene_context, EditorScene::ElementRef parent, const json& j) {
 
     auto new_entity = new_default(scene_context, parent);
-
-
-
     new_entity->update_local_transform_from_json(j);
-
     new_entity->update_material_from_json(j);
 
-
-
     new_entity->rendered_entity->model = scene_context.model_loader.load_from_file<EntityRenderer::VertexData>(j["model"]);
-
     new_entity->rendered_entity->render_data.diffuse_texture = texture_from_json(scene_context, j["diffuse_texture"]);
-
     new_entity->rendered_entity->render_data.specular_map_texture = texture_from_json(scene_context, j["specular_map_texture"]);
-
-
 
     new_entity->update_instance_data();
 
@@ -99,13 +68,9 @@ std::unique_ptr<EditorScene::EntityElement> EditorScene::EntityElement::from_jso
 
 
 json EditorScene::EntityElement::into_json() const {
-
     if (!rendered_entity->model->get_filename().has_value()) {
-
         return {
-
             {"error", Formatter() << "Entity [" << name << "]'s model does not have a filename so can not be exported, and has been skipped."}
-
         };
 
     }
@@ -113,15 +78,11 @@ json EditorScene::EntityElement::into_json() const {
 
 
     return {
-
         local_transform_into_json(),
-
         material_into_json(),
 
         {"model", rendered_entity->model->get_filename().value()},
-
         {"diffuse_texture", texture_to_json(rendered_entity->render_data.diffuse_texture)},
-
         {"specular_map_texture", texture_to_json(rendered_entity->render_data.specular_map_texture)},
 
     };
@@ -131,20 +92,12 @@ json EditorScene::EntityElement::into_json() const {
 
 
 void EditorScene::EntityElement::add_imgui_edit_section(MasterRenderScene& render_scene, const SceneContext& scene_context) {
-
     ImGui::Text("Entity");
-
     SceneElement::add_imgui_edit_section(render_scene, scene_context);
-
-
-
     add_local_transform_imgui_edit_section(render_scene, scene_context);
-
     add_material_imgui_edit_section(render_scene, scene_context);
 
-
-
-    ImGui::Text("Material Properties");
+    // Task D - Material Properties
 
     // Diffuse properties
     ImGui::Text("Diffuse");
@@ -165,7 +118,7 @@ void EditorScene::EntityElement::add_imgui_edit_section(MasterRenderScene& rende
     ImGui::Spacing();
 
     // Shininess properties
-    ImGui::DragFloat("Shininess", &rendered_entity->instance_data.material.shininess, 1.0f, 0.0f, 2.0f);
+    ImGui::DragFloat("Shininess", &rendered_entity->instance_data.material.shininess, 1.0f, 0.0f, 150.0f);
     ImGui::Spacing();
 
     ImGui::DragDisableCursor(scene_context.window);
