@@ -10,6 +10,9 @@ void EntityRenderer::EntityShader::get_uniforms_set_bindings() {
     BaseLitEntityShader::get_uniforms_set_bindings(); // Call the base implementation to load all the common uniforms
     // Pass normal matrix from cpu to not need to compute the same cofactor for every vertex
     normal_matrix_location = get_uniform_location("normal_matrix");
+    
+    // Add texture scale uniform location
+    texture_scale_location = get_uniform_location("texture_scale");
 }
 
 void EntityRenderer::EntityShader::set_instance_data(const BaseLitEntityInstanceData& instance_data) {
@@ -26,6 +29,11 @@ void EntityRenderer::EntityShader::set_instance_data(const BaseLitEntityInstance
     glProgramUniformMatrix3fv(id(), normal_matrix_location, 1, GL_FALSE, &normal_matrix[0][0]);
 }
 
+// Add new method to set texture scale uniform
+void EntityRenderer::EntityShader::set_texture_scale(const glm::vec2& texture_scale) {
+    glProgramUniform2fv(id(), texture_scale_location, 1, &texture_scale[0]);
+}
+
 EntityRenderer::EntityRenderer::EntityRenderer() : shader() {}
 
 void EntityRenderer::EntityRenderer::render(const RenderScene& render_scene, const LightScene& light_scene) {
@@ -36,6 +44,9 @@ void EntityRenderer::EntityRenderer::render(const RenderScene& render_scene, con
 
     for (const auto& entity: render_scene.entities) {
         shader.set_instance_data(entity->instance_data);
+        
+        // Set texture scale uniform
+        shader.set_texture_scale(entity->texture_scale);
 
         glm::vec3 position = entity->instance_data.model_matrix[3];
         // IMPORTANT NOTE:
@@ -79,7 +90,6 @@ void EntityRenderer::VertexData::from_mesh(const VertexCollection& vertex_collec
         });
     }
 }
-
 
 void EntityRenderer::VertexData::setup_attrib_pointers() {
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(VertexData), (void*) offsetof(VertexData, position));
