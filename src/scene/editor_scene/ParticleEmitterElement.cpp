@@ -44,22 +44,23 @@ std::unique_ptr<ParticleEmitterElement> ParticleEmitterElement::from_json(const 
 }
         
 json ParticleEmitterElement::into_json() const {
-    json j = local_transform_into_json();
-    j["emissionRate"] = emissionRate;
-    j["maxParticles"] = maxParticles;
-    j["particleLifespanMin"] = particleLifespanMin;
-    j["particleLifespanMax"] = particleLifespanMax;
-    j["initialVelocityMin"] = initialVelocityMin;
-    j["initialVelocityMax"] = initialVelocityMax;
-    j["initialSizeMin"] = initialSizeMin;
-    j["initialSizeMax"] = initialSizeMax;
-    j["endSizeFactor"] = endSizeFactor;
-    j["initialColorStart"] = initialColorStart;
-    j["initialColorEnd"] = initialColorEnd;
-    j["endColor"] = endColor;
-    j["gravity"] = gravity;
-    j["worldSpaceParticles"] = worldSpaceParticles;
-    return j;
+    return {
+        local_transform_into_json(),
+        {"emissionRate", emissionRate},
+        {"maxParticles", maxParticles},
+        {"particleLifespanMin", particleLifespanMin},
+        {"particleLifespanMax", particleLifespanMax},
+        {"initialVelocityMin", initialVelocityMin},
+        {"initialVelocityMax", initialVelocityMax},
+        {"initialSizeMin", initialSizeMin},
+        {"initialSizeMax", initialSizeMax},
+        {"endSizeFactor", endSizeFactor},
+        {"initialColorStart", initialColorStart},
+        {"initialColorEnd", initialColorEnd},
+        {"endColor", endColor},
+        {"gravity", gravity},
+        {"worldSpaceParticles", worldSpaceParticles}
+    };
 }
 
 void ParticleEmitterElement::add_imgui_edit_section(MasterRenderScene& render_scene, const SceneContext& scene_context) {
