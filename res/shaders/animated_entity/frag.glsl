@@ -54,7 +54,7 @@ void main() {
     );
 
     // Resolve lighting with fragment texture sampling
-    vec3 resolved_lighting = resolve_textured_light_calculation(frag_in.lighting_result, diffuse_texture, specular_map_texture, scaled_texture_coordinate);
+    vec3 resolved_lighting = resolve_textured_light_calculation(lighting_result, diffuse_texture, specular_map_texture, scaled_texture_coordinate);
     
     out_colour = vec4(resolved_lighting, 1.0f);
     out_colour.rgb = pow(out_colour.rgb, vec3(inverse_gamma));

@@ -38,6 +38,9 @@ uniform sampler2D specular_map_texture;
 uniform float texture_scale; // Task E
 
 void main() {
+    // Scaled texture coordinates
+    vec2 scaled_texture_coordinate = frag_in.texture_coordinate * texture_scale;
+
     // Per fragment lighting calculation
     vec3 ws_view_dir = normalize(ws_view_position - frag_in.ws_position);
 
