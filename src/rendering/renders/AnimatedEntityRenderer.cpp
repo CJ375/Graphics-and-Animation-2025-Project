@@ -9,6 +9,9 @@ AnimatedEntityRenderer::AnimatedEntityShader::AnimatedEntityShader() :
 void AnimatedEntityRenderer::AnimatedEntityShader::get_uniforms_set_bindings() {
     BaseLitEntityShader::get_uniforms_set_bindings(); // Call the base implementation to load all the common uniforms
     bone_transforms_location = get_uniform_location("bone_transforms");
+    
+    // Add texture scale uniform location
+    texture_scale_location = get_uniform_location("texture_scale");
 }
 
 void AnimatedEntityRenderer::AnimatedEntityShader::set_model_matrix(const glm::mat4& model_matrix) {
@@ -17,6 +20,11 @@ void AnimatedEntityRenderer::AnimatedEntityShader::set_model_matrix(const glm::m
 
 void AnimatedEntityRenderer::AnimatedEntityShader::set_bone_transforms(const std::vector<glm::mat4>& bone_transforms) {
     glProgramUniformMatrix4fv(id(), bone_transforms_location, std::min(BONE_TRANSFORMS, (int) bone_transforms.size()), GL_FALSE, &bone_transforms[0][0][0]);
+}
+
+// Add new method to set texture scale uniform
+void AnimatedEntityRenderer::AnimatedEntityShader::set_texture_scale(const glm::vec2& texture_scale) {
+    glProgramUniform2fv(id(), texture_scale_location, 1, &texture_scale[0]);
 }
 
 AnimatedEntityRenderer::AnimatedEntityRenderer::AnimatedEntityRenderer() : shader() {}
@@ -29,6 +37,9 @@ void AnimatedEntityRenderer::AnimatedEntityRenderer::render(const RenderScene& r
 
     for (const auto& entity: render_scene.entities) {
         shader.set_instance_data(entity->instance_data);
+        
+        // Set texture scale uniform
+        shader.set_texture_scale(entity->texture_scale);
 
         glm::vec3 position = entity->instance_data.model_matrix[3];
         // IMPORTANT NOTE:
@@ -87,7 +98,6 @@ void AnimatedEntityRenderer::VertexData::from_mesh(const VertexCollection& verte
         });
     }
 }
-
 
 void AnimatedEntityRenderer::VertexData::setup_attrib_pointers() {
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(VertexData), (void*) offsetof(VertexData, position));
