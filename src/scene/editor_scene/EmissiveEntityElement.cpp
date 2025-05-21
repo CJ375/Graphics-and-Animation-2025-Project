@@ -67,6 +67,7 @@ void EditorScene::EmissiveEntityElement::add_imgui_edit_section(MasterRenderScen
 
     add_local_transform_imgui_edit_section(render_scene, scene_context);
     
+    // Task D - Material Properties
     // Emissive material properties
     ImGui::Text("Emissive Material Properties");
     ImGui::ColorEdit3("Emission Color", &rendered_entity->instance_data.material.emission_tint[0]);
