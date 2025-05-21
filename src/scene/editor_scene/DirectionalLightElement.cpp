@@ -74,14 +74,6 @@ void EditorScene::DirectionalLightElement::add_imgui_edit_section(MasterRenderSc
 
     ImGui::Text("Light Direction");
     transformUpdated |= ImGui::DragFloat3("Direction", &direction[0], 0.01f);
-    if (transformUpdated) {
-        // Normalize direction vector
-        if (glm::length(direction) > 0.0f) {
-            direction = glm::normalize(direction);
-        } else {
-            direction = glm::vec3(0.0f, -1.0f, 0.0f);
-        }
-    }
     ImGui::DragDisableCursor(scene_context.window);
     ImGui::Spacing();
 
@@ -113,17 +105,18 @@ void EditorScene::DirectionalLightElement::update_instance_data() {
     glm::vec3 normalizedDirection = glm::normalize(direction);
     
     glm::vec3 defaultDirection = glm::vec3(0.0f, -1.0f, 0.0f);
+    glm::vec3 rotationAxis = glm::cross(defaultDirection, normalizedDirection);
     
-    float angle = glm::angle(defaultDirection, normalizedDirection);
-    glm::vec3 rotationAxis = glm::normalize(glm::cross(defaultDirection, normalizedDirection));
-    
-    if (glm::length(rotationAxis) > 0.001f) {
-        glm::mat4 rotation = glm::rotate(angle, rotationAxis);
-        transform = transform * glm::translate(position) * rotation * glm::scale(glm::vec3(visual_scale));
+    if (glm::length(rotationAxis) < 0.001f) {
+        if (glm::dot(defaultDirection, normalizedDirection) < 0) {
+            transform = transform * glm::translate(position) * glm::rotate(glm::pi<float>(), glm::vec3(1.0f, 0.0f, 0.0f)) * glm::scale(glm::vec3(visual_scale));
+        } else {
+            transform = transform * glm::translate(position) * glm::scale(glm::vec3(visual_scale));
+        }
     } else {
-        glm::vec3 rotationAxis = glm::vec3(1.0f, 0.0f, 0.0f);
-        float rotationAngle = (glm::dot(defaultDirection, normalizedDirection) < 0) ? glm::pi<float>() : 0.0f;
-        transform = transform * glm::translate(position) * glm::rotate(rotationAngle, rotationAxis) * glm::scale(glm::vec3(visual_scale));
+        float angle = glm::angle(defaultDirection, normalizedDirection);
+        rotationAxis = glm::normalize(rotationAxis);
+        transform = transform * glm::translate(position) * glm::rotate(-angle, rotationAxis) * glm::scale(glm::vec3(visual_scale));
     }
 
     light->direction = normalizedDirection;
