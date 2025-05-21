@@ -60,7 +60,7 @@ void EditorScene::PointLightElement::add_imgui_edit_section(MasterRenderScene& r
 
     ImGui::Text("Local Transformation");
     bool transformUpdated = false;
-    transformUpdated |= ImGui::DragFloat3("Translation", &position[0], 0.01f);
+    transformUpdated |= ImGui::DragFloat3("Translation", &position[0], 0.5f);
     ImGui::DragDisableCursor(scene_context.window);
     ImGui::Spacing();
 

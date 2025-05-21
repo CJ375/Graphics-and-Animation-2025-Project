@@ -5,6 +5,7 @@
 #include "scene/SceneContext.h"
 
 // Based off of the default point light files
+// Task H - Directional Light
 
 namespace EditorScene {
     class DirectionalLightElement : public SceneElement {
@@ -12,6 +13,7 @@ namespace EditorScene {
         static constexpr const char* ELEMENT_TYPE_NAME = "Directional Light";
 
         // Local transformation
+        glm::vec3 position;
         glm::vec3 direction;
         bool visible = true;
         float visual_scale = 1.0f;
@@ -20,7 +22,9 @@ namespace EditorScene {
         std::shared_ptr<EmissiveEntityRenderer::Entity> light_arrow;
 
         DirectionalLightElement(const ElementRef& parent, std::string name, glm::vec3 direction, std::shared_ptr<DirectionalLight> light, std::shared_ptr<EmissiveEntityRenderer::Entity> light_arrow) :
-            SceneElement(parent, std::move(name)), direction(direction), light(std::move(light)), light_arrow(std::move(light_arrow)) {}
+            SceneElement(parent, std::move(name)), direction(direction), light(std::move(light)), light_arrow(std::move(light_arrow)) {
+            position = glm::vec3(0.0f, 2.0f, 0.0f);  // Default position
+        }
 
         static std::unique_ptr<DirectionalLightElement> new_default(const SceneContext& scene_context, ElementRef parent);
         static std::unique_ptr<DirectionalLightElement> from_json(const SceneContext& scene_context, ElementRef parent, const json& j);

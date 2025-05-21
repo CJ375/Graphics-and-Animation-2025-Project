@@ -42,6 +42,7 @@ std::unique_ptr<EditorScene::DirectionalLightElement> EditorScene::DirectionalLi
 std::unique_ptr<EditorScene::DirectionalLightElement> EditorScene::DirectionalLightElement::from_json(const SceneContext& scene_context, EditorScene::ElementRef parent, const json& j) {
     auto light_element = new_default(scene_context, parent);
 
+    light_element->position = j["position"];
     light_element->direction = j["direction"];
     light_element->light->colour = j["colour"];
     light_element->visible = j["visible"];
@@ -53,10 +54,11 @@ std::unique_ptr<EditorScene::DirectionalLightElement> EditorScene::DirectionalLi
 
 json EditorScene::DirectionalLightElement::into_json() const {
     return {
-        {"direction",     direction},
-        {"colour",        light->colour},
-        {"visible",       visible},
-        {"visual_scale",  visual_scale},
+        {"position",    position},
+        {"direction",   direction},
+        {"colour",      light->colour},
+        {"visible",     visible},
+        {"visual_scale", visual_scale},
     };
 }
 
@@ -64,8 +66,13 @@ void EditorScene::DirectionalLightElement::add_imgui_edit_section(MasterRenderSc
     ImGui::Text("Directional Light");
     SceneElement::add_imgui_edit_section(render_scene, scene_context);
 
-    ImGui::Text("Light Direction");
+    ImGui::Text("Local Transformation");
     bool transformUpdated = false;
+    transformUpdated |= ImGui::DragFloat3("Translation", &position[0], 0.5f);
+    ImGui::DragDisableCursor(scene_context.window);
+    ImGui::Spacing();
+
+    ImGui::Text("Light Direction");
     transformUpdated |= ImGui::DragFloat3("Direction", &direction[0], 0.01f);
     if (transformUpdated) {
         // Normalize direction vector
@@ -97,8 +104,6 @@ void EditorScene::DirectionalLightElement::add_imgui_edit_section(MasterRenderSc
 }
 
 void EditorScene::DirectionalLightElement::update_instance_data() {
-    glm::vec3 position = glm::vec3(0.0f, 2.0f, 0.0f);
-    
     if (!EditorScene::is_null(parent)) {
         transform = (*parent)->transform;
     } else {
@@ -110,19 +115,15 @@ void EditorScene::DirectionalLightElement::update_instance_data() {
     glm::vec3 defaultDirection = glm::vec3(0.0f, -1.0f, 0.0f);
     
     float angle = glm::angle(defaultDirection, normalizedDirection);
+    glm::vec3 rotationAxis = glm::normalize(glm::cross(defaultDirection, normalizedDirection));
     
-    if (angle > 0.001f && angle < 3.14f) {
-        glm::vec3 rotationAxis = glm::normalize(glm::cross(defaultDirection, normalizedDirection));
-        
+    if (glm::length(rotationAxis) > 0.001f) {
         glm::mat4 rotation = glm::rotate(angle, rotationAxis);
         transform = transform * glm::translate(position) * rotation * glm::scale(glm::vec3(visual_scale));
     } else {
-        if (glm::dot(defaultDirection, normalizedDirection) < 0) {
-            glm::vec3 rotationAxis = glm::vec3(1.0f, 0.0f, 0.0f);
-            transform = transform * glm::translate(position) * glm::rotate(glm::pi<float>(), rotationAxis) * glm::scale(glm::vec3(visual_scale));
-        } else {
-            transform = transform * glm::translate(position) * glm::scale(glm::vec3(visual_scale));
-        }
+        glm::vec3 rotationAxis = glm::vec3(1.0f, 0.0f, 0.0f);
+        float rotationAngle = (glm::dot(defaultDirection, normalizedDirection) < 0) ? glm::pi<float>() : 0.0f;
+        transform = transform * glm::translate(position) * glm::rotate(rotationAngle, rotationAxis) * glm::scale(glm::vec3(visual_scale));
     }
 
     light->direction = normalizedDirection;
