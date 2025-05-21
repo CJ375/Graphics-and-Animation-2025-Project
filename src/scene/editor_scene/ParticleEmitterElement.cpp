@@ -81,9 +81,9 @@ void ParticleEmitterElement::add_imgui_edit_section(MasterRenderScene& render_sc
     ImGui::DragFloatRange2("Initial Size", &initialSizeMin, &initialSizeMax, 0.001f, 0.001f, 10.0f);
     ImGui::DragFloat("End Size Factor", &endSizeFactor, 0.01f, 0.0f, 10.0f);
 
-    ImGui::Text("Initial Colour Start"); ImGui::ColorEdit4("##IColStart", glm::value_ptr(initialColorStart));
-    ImGui::Text("Initial Colour End");   ImGui::ColorEdit4("##IColEnd", glm::value_ptr(initialColorEnd));
-    ImGui::Text("End Colour");           ImGui::ColorEdit4("##EndCol", glm::value_ptr(endColor));
+    ImGui::Text("Initial Colour Start"); ImGui::ColorEdit3("##IColStart", glm::value_ptr(initialColorStart));
+    ImGui::Text("Initial Colour End");   ImGui::ColorEdit3("##IColEnd", glm::value_ptr(initialColorEnd));
+    ImGui::Text("End Colour");           ImGui::ColorEdit3("##EndCol", glm::value_ptr(endColor));
 
     ImGui::Text("Gravity"); ImGui::DragFloat3("##Gravity", &gravity[0], 0.01f);
 
