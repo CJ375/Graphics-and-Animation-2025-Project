@@ -35,6 +35,8 @@ uniform vec3 ws_view_position;
 uniform sampler2D diffuse_texture;
 uniform sampler2D specular_map_texture;
 
+uniform float texture_scale; // Task E
+
 void main() {
     // Per fragment lighting calculation
     vec3 ws_view_dir = normalize(ws_view_position - frag_in.ws_position);
@@ -54,7 +56,7 @@ void main() {
     );
 
     // Resolve lighting with fragment texture sampling
-    vec3 resolved_lighting = resolve_textured_light_calculation(lighting_result, diffuse_texture, specular_map_texture, frag_in.texture_coordinate);
+    vec3 resolved_lighting = resolve_textured_light_calculation(lighting_result, diffuse_texture, specular_map_texture, scaled_texture_coordinate);
 
     out_colour = vec4(resolved_lighting, 1.0f);
     out_colour.rgb = pow(out_colour.rgb, vec3(inverse_gamma));

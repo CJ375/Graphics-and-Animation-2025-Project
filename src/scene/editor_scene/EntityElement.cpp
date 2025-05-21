@@ -18,6 +18,7 @@ std::unique_ptr<EditorScene::EntityElement> EditorScene::EntityElement::new_defa
                 {1.0f, 1.0f, 1.0f, 1.0f},
                 {1.0f, 1.0f, 1.0f, 1.0f},
                 512.0f,
+                1.0f
             }
 
         },
@@ -58,6 +59,7 @@ std::unique_ptr<EditorScene::EntityElement> EditorScene::EntityElement::from_jso
     new_entity->rendered_entity->model = scene_context.model_loader.load_from_file<EntityRenderer::VertexData>(j["model"]);
     new_entity->rendered_entity->render_data.diffuse_texture = texture_from_json(scene_context, j["diffuse_texture"]);
     new_entity->rendered_entity->render_data.specular_map_texture = texture_from_json(scene_context, j["specular_map_texture"]);
+    new_entity->rendered_entity->instance_data.material.texture_scale = j["texture_scale"];
 
     new_entity->update_instance_data();
 
@@ -84,6 +86,7 @@ json EditorScene::EntityElement::into_json() const {
         {"model", rendered_entity->model->get_filename().value()},
         {"diffuse_texture", texture_to_json(rendered_entity->render_data.diffuse_texture)},
         {"specular_map_texture", texture_to_json(rendered_entity->render_data.specular_map_texture)},
+        {"texture_scale", rendered_entity->instance_data.material.texture_scale}
 
     };
 
@@ -128,6 +131,9 @@ void EditorScene::EntityElement::add_imgui_edit_section(MasterRenderScene& rende
     scene_context.model_loader.add_imgui_model_selector("Model Selection", rendered_entity->model);
     scene_context.texture_loader.add_imgui_texture_selector("Diffuse Texture", rendered_entity->render_data.diffuse_texture);
     scene_context.texture_loader.add_imgui_texture_selector("Specular Map", rendered_entity->render_data.specular_map_texture, false);
+
+    // Task E
+    ImGui::DragFloat("Texture Scale", &rendered_entity->instance_data.material.texture_scale, 0.1f, 1.0f, 25.0f);
 }
 
 
@@ -140,10 +146,13 @@ void EditorScene::EntityElement::update_instance_data() {
         transform = (*parent)->transform * transform;
     }
 
+    float temp_texture_scale = rendered_entity->instance_data.material.texture_scale;
+    rendered_entity->instance_data.material.texture_scale = temp_texture_scale;
 
 
     rendered_entity->instance_data.model_matrix = transform;
     rendered_entity->instance_data.material = material;
+    
 }
 
 
