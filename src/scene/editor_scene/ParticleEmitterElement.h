@@ -24,18 +24,12 @@ namespace EditorScene {
         // Optional: float rotation = 0.0f; float angularVelocity = 0.0f;
     };
 
-    // Enum for blend modes
-    enum class ParticleBlendMode {
-        AlphaBlend,
-        Additive
-    };
-
     class ParticleEmitterElement : virtual public SceneElement, public LocalTransformComponent {
     public:
         static constexpr const char* ELEMENT_TYPE_NAME = "ParticleEmitter";
 
-        // Emitter Properties (Editable via ImGui)
-        float emissionRate = 10.0f;         // Particles per second
+        // Emitter Properties
+        float emissionRate = 10.0f; // Particles per second
         int maxParticles = 100;
         float particleLifespanMin = 1.0f;
         float particleLifespanMax = 3.0f;
@@ -43,13 +37,12 @@ namespace EditorScene {
         glm::vec3 initialVelocityMax{ 0.5f, 2.0f,  0.5f };
         float initialSizeMin = 0.1f;
         float initialSizeMax = 0.3f;
-        float endSizeFactor = 0.0f;         // Multiplier for initial size at end of life (0 = shrink to nothing)
+        float endSizeFactor = 0.0f; // Multiplier for initial size at end of life
         glm::vec4 initialColorStart{ 1.0f, 1.0f, 1.0f, 1.0f };
         glm::vec4 initialColorEnd{ 1.0f, 1.0f, 1.0f, 1.0f };
         glm::vec4 endColor{ 1.0f, 1.0f, 1.0f, 0.0f }; // Fades out by default
         glm::vec3 gravity{ 0.0f, -0.98f, 0.0f };
         std::string particleTexturePath = "particle/default_particle.png"; // Changed from textures/default_particle.png
-        ParticleBlendMode blendMode = ParticleBlendMode::AlphaBlend;
         bool worldSpaceParticles = false; // If true, particles are not affected by emitter's transform after emission
 
         // Internal State

@@ -49,7 +49,6 @@ namespace ParticleRenderer {
         std::vector<ParticleVertexData> particle_vertex_buffer_data;
         std::vector<float> particle_sizes;
         std::shared_ptr<TextureHandle> currentTextureHandle;
-        EditorScene::ParticleBlendMode currentBlendMode{EditorScene::ParticleBlendMode::AlphaBlend};
 
     public:
         ParticleRenderer();

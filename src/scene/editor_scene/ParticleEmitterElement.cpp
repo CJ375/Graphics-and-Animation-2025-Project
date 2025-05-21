@@ -1,7 +1,7 @@
 #include "ParticleEmitterElement.h"
-#include "rendering/imgui/ImGuiManager.h" // For ImGui widgets
+#include "rendering/imgui/ImGuiManager.h"
 #include "utility/Random.h"
-#include <glm/gtc/type_ptr.hpp> // For ImGui::ColorEdit4
+#include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 
 namespace EditorScene {
@@ -18,12 +18,12 @@ ParticleEmitterElement::ParticleEmitterElement(const ElementRef& parent, std::st
 std::unique_ptr<ParticleEmitterElement> ParticleEmitterElement::new_default(const SceneContext& scene_context, ElementRef parent) {
     auto element = std::make_unique<ParticleEmitterElement>(parent, "New Particle Emitter");
     element->load_particle_texture(scene_context);
-    element->update_instance_data(); // Update initial transform
+    element->update_instance_data();
     return element;
 }
 
 std::unique_ptr<ParticleEmitterElement> ParticleEmitterElement::from_json(const SceneContext& scene_context, ElementRef parent, const json& j) {
-    auto element = new_default(scene_context, parent); // Start with defaults
+    auto element = new_default(scene_context, parent);
 
     element->update_local_transform_from_json(j);
 
@@ -41,7 +41,6 @@ std::unique_ptr<ParticleEmitterElement> ParticleEmitterElement::from_json(const 
     element->endColor = j.value("endColor", element->endColor);
     element->gravity = j.value("gravity", element->gravity);
     element->particleTexturePath = j.value("particleTexturePath", element->particleTexturePath);
-    element->blendMode = j.value("blendMode", element->blendMode);
     element->worldSpaceParticles = j.value("worldSpaceParticles", element->worldSpaceParticles);
 
     element->load_particle_texture(scene_context);
@@ -65,7 +64,6 @@ json ParticleEmitterElement::into_json() const {
     j["endColor"] = endColor;
     j["gravity"] = gravity;
     j["particleTexturePath"] = particleTexturePath;
-    j["blendMode"] = blendMode;
     j["worldSpaceParticles"] = worldSpaceParticles;
     return j;
 }
@@ -77,23 +75,23 @@ void ParticleEmitterElement::add_imgui_edit_section(MasterRenderScene& render_sc
     ImGui::Separator();
     ImGui::Text("Particle Emitter Properties");
 
-    ImGui::DragFloat("Emission Rate##PE", &emissionRate, 0.1f, 0.0f, 1000.0f);
-    ImGui::DragInt("Max Particles##PE", &maxParticles, 1, 0, 10000);
-    ImGui::DragFloatRange2("Lifespan (s)##PE", &particleLifespanMin, &particleLifespanMax, 0.01f, 0.0f, 60.0f);
+    ImGui::DragFloat("Emission Rate", &emissionRate, 0.1f, 0.0f, 1000.0f);
+    ImGui::DragInt("Max Particles", &maxParticles, 1, 0, 10000);
+    ImGui::DragFloatRange2("Lifespan (s)", &particleLifespanMin, &particleLifespanMax, 0.01f, 0.0f, 60.0f);
     
-    ImGui::Text("Initial Velocity Min##PE"); ImGui::DragFloat3("##IVelMinPE", &initialVelocityMin[0], 0.01f);
-    ImGui::Text("Initial Velocity Max##PE"); ImGui::DragFloat3("##IVelMaxPE", &initialVelocityMax[0], 0.01f);
+    ImGui::Text("Initial Velocity Min"); ImGui::DragFloat3("##IVelMinPE", &initialVelocityMin[0], 0.01f);
+    ImGui::Text("Initial Velocity Max"); ImGui::DragFloat3("##IVelMaxPE", &initialVelocityMax[0], 0.01f);
     
-    ImGui::DragFloatRange2("Initial Size##PE", &initialSizeMin, &initialSizeMax, 0.001f, 0.001f, 10.0f);
-    ImGui::DragFloat("End Size Factor##PE", &endSizeFactor, 0.01f, 0.0f, 10.0f);
+    ImGui::DragFloatRange2("Initial Size", &initialSizeMin, &initialSizeMax, 0.001f, 0.001f, 10.0f);
+    ImGui::DragFloat("End Size Factor", &endSizeFactor, 0.01f, 0.0f, 10.0f);
 
-    ImGui::Text("Initial Color Start##PE"); ImGui::ColorEdit4("##IColStartPE", glm::value_ptr(initialColorStart));
-    ImGui::Text("Initial Color End##PE");   ImGui::ColorEdit4("##IColEndPE", glm::value_ptr(initialColorEnd));
-    ImGui::Text("End Color##PE");           ImGui::ColorEdit4("##EndColPE", glm::value_ptr(endColor));
+    ImGui::Text("Initial Color Start"); ImGui::ColorEdit4("##IColStartPE", glm::value_ptr(initialColorStart));
+    ImGui::Text("Initial Color End");   ImGui::ColorEdit4("##IColEndPE", glm::value_ptr(initialColorEnd));
+    ImGui::Text("End Color");           ImGui::ColorEdit4("##EndColPE", glm::value_ptr(endColor));
 
     ImGui::Text("Gravity##PE"); ImGui::DragFloat3("##GravityPE", &gravity[0], 0.01f);
 
-    scene_context.texture_loader.add_imgui_texture_selector("Particle Texture##PE", textureHandle);
+    scene_context.texture_loader.add_imgui_texture_selector("Particle Texture", textureHandle);
 
     if (textureHandle && textureHandle->get_filename().has_value()) {
         particleTexturePath = textureHandle->get_filename().value();
@@ -106,12 +104,7 @@ void ParticleEmitterElement::add_imgui_edit_section(MasterRenderScene& render_sc
         }
     }
 
-    ImGui::Text("Blend Mode##PE");
-    if (ImGui::RadioButton("Alpha Blend##PE", blendMode == ParticleBlendMode::AlphaBlend)) { blendMode = ParticleBlendMode::AlphaBlend; }
-    ImGui::SameLine();
-    if (ImGui::RadioButton("Additive##PE", blendMode == ParticleBlendMode::Additive)) { blendMode = ParticleBlendMode::Additive; }
-    
-    ImGui::Checkbox("World Space Particles##PE", &worldSpaceParticles);
+    ImGui::Checkbox("World Space Particles", &worldSpaceParticles);
     ImGui::DragDisableCursor(scene_context.window);
 }
 

@@ -29,7 +29,6 @@ layout (std140) uniform DirectionalLightArray {
 #endif
 
 // Global Data
-uniform vec3 ws_view_position;
 uniform float inverse_gamma;
 uniform vec3 ws_view_position;
 

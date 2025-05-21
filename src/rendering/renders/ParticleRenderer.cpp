@@ -76,8 +76,6 @@ ParticleRenderer::~ParticleRenderer() {
 void ParticleRenderer::prepare_frame(const std::vector<std::shared_ptr<EditorScene::ParticleEmitterElement>>& particle_systems, const Window& window, const BaseEntityGlobalData& global_data) {
     particle_vertex_buffer_data.clear();
     
-    currentBlendMode = EditorScene::ParticleBlendMode::AlphaBlend; // Default
-    
     // Use actual camera orientation vectors for billboarding from global_data
     glm::vec3 camera_right_ws = global_data.camera_right;
     glm::vec3 camera_up_ws    = global_data.camera_up;
@@ -87,7 +85,6 @@ void ParticleRenderer::prepare_frame(const std::vector<std::shared_ptr<EditorSce
         if (!system || !system->enabled || !system->textureHandle) continue;
 
         currentTextureHandle = system->textureHandle;
-        currentBlendMode = system->blendMode;
 
         const auto& particles = system->particles;
 
@@ -155,14 +152,7 @@ void ParticleRenderer::render(const BaseEntityGlobalData& global_data) {
     
     // Set up blending
     glEnable(GL_BLEND);
-    // Apply the correct blend mode
-    if (currentBlendMode == EditorScene::ParticleBlendMode::Additive) {
-        // Additive blending (bright, glowy effect)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-    } else {
-        // Alpha blending (standard transparent effect)
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    }
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // Bind the particle texture
     if (currentTextureHandle) {

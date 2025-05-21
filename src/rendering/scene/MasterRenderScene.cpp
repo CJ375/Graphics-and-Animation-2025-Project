@@ -36,13 +36,18 @@ void MasterRenderScene::insert_light(std::shared_ptr<PointLight> point_light) {
     light_scene.point_lights.insert(std::move(point_light));
 }
 
+bool MasterRenderScene::remove_light(const std::shared_ptr<PointLight>& point_light) {
+    return light_scene.point_lights.erase(point_light) != 0;
+}
+
+
 // Task H - Directional Light Element
 void MasterRenderScene::insert_light(std::shared_ptr<DirectionalLight> directional_light) {
     light_scene.directional_lights.insert(std::move(directional_light));
 }
 
-bool MasterRenderScene::remove_light(const std::shared_ptr<PointLight>& point_light) {
-    return light_scene.point_lights.erase(point_light) != 0;
+bool MasterRenderScene::remove_light(const std::shared_ptr<DirectionalLight>& directional_light) {
+    return light_scene.directional_lights.erase(directional_light) != 0;
 }
 
 MasterRenderScene::MasterRenderScene() {
@@ -81,8 +86,4 @@ void MasterRenderScene::remove_particle_system(EditorScene::ParticleEmitterEleme
 
 const std::vector<std::shared_ptr<EditorScene::ParticleEmitterElement>>& MasterRenderScene::get_particle_systems() const {
     return particle_systems;
-}
-
-bool MasterRenderScene::remove_light(const std::shared_ptr<DirectionalLight>& directional_light) {
-    return light_scene.directional_lights.erase(directional_light) != 0;
 }
