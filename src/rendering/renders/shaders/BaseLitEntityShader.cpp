@@ -60,6 +60,7 @@ void BaseLitEntityShader::set_point_lights(const std::vector<PointLight>& point_
     point_lights_ubo.upload();
 }
 
+// Task H - Directional Light Element
 void BaseLitEntityShader::set_directional_lights(const std::vector<DirectionalLight>& directional_lights) {
     uint count = std::min(MAX_DL, (uint) directional_lights.size());
 

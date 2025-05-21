@@ -6,6 +6,7 @@ std::vector<PointLight> LightScene::get_nearest_point_lights(glm::vec3 target, s
     return get_nearest_lights(point_lights, target, max_count, min_count);
 }
 
+// Task H - Directional Light Element
 std::vector<DirectionalLight> LightScene::get_directional_lights(size_t max_count, size_t min_count) const {
     std::vector<DirectionalLight> result{};
     size_t count = std::min(directional_lights.size(), max_count);

@@ -83,7 +83,7 @@ struct LightScene {
     ///
     std::vector<PointLight> get_nearest_point_lights(glm::vec3 target, size_t max_count, size_t min_count = 0) const;
 
-    std::vector<DirectionalLight> get_directional_lights(size_t max_count, size_t min_count = 0) const;
+    std::vector<DirectionalLight> get_directional_lights(size_t max_count, size_t min_count = 0) const; // Task H - Directional Light Element
 
 private:
     template<typename Light>

@@ -34,6 +34,7 @@ void MasterRenderScene::insert_light(std::shared_ptr<PointLight> point_light) {
     light_scene.point_lights.insert(std::move(point_light));
 }
 
+// Task H - Directional Light Element
 void MasterRenderScene::insert_light(std::shared_ptr<DirectionalLight> directional_light) {
     light_scene.directional_lights.insert(std::move(directional_light));
 }

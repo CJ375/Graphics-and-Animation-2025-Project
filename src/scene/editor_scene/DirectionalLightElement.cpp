@@ -10,6 +10,7 @@
 
 // Based off of the default point light files
 
+// Task H - Directional Light Element
 std::unique_ptr<EditorScene::DirectionalLightElement> EditorScene::DirectionalLightElement::new_default(const SceneContext& scene_context, EditorScene::ElementRef parent) {
     auto light_element = std::make_unique<DirectionalLightElement>(
         parent,
@@ -20,6 +21,7 @@ std::unique_ptr<EditorScene::DirectionalLightElement> EditorScene::DirectionalLi
             glm::vec4{1.0f}
         ),
         EmissiveEntityRenderer::Entity::create(
+            // Takes arrow.obj from the assets folder and loads it as an EmissiveEntityRenderer::Entity
             scene_context.model_loader.load_from_file<EmissiveEntityRenderer::VertexData>("arrow.obj"),
             EmissiveEntityRenderer::InstanceData{
                 glm::mat4{},
