@@ -45,7 +45,7 @@ void PanningCamera::update(const Window& window, float dt, bool controls_enabled
     pitch = clamp(pitch, PITCH_MIN, PITCH_MAX);
     distance = clamp(distance, MIN_DISTANCE, MAX_DISTANCE);
 
-    // Task A: Set camera to rotate around the focus point
+    // Task A: Camera rotates around the focus point 
     glm::vec3 direction = glm::normalize(glm::vec3{
         cos(yaw) * cos(pitch),
         sin(pitch),
@@ -53,11 +53,12 @@ void PanningCamera::update(const Window& window, float dt, bool controls_enabled
     });
 
     glm::vec3 new_position = focus_point - distance * direction;
+
     view_matrix = glm::lookAt(new_position, focus_point, glm::vec3{0.0f, 1.0f, 0.0f});
 
     inverse_view_matrix = glm::inverse(view_matrix);
-
-    projection_matrix = glm::infinitePerspective(fov, window.get_framebuffer_aspect_ratio(), near);
+    
+    projection_matrix = glm::infinitePerspective(fov, window.get_framebuffer_aspect_ratio(), 1.0f);
     inverse_projection_matrix = glm::inverse(projection_matrix);
 }
 
