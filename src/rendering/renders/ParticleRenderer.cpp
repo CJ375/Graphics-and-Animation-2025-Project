@@ -45,6 +45,10 @@ ParticleRenderer::ParticleRenderer() {
     glEnableVertexAttribArray(2);
     glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(ParticleInstance), (void*)offsetof(ParticleInstance, color));
 
+    // Rotation
+    glEnableVertexAttribArray(3);
+    glVertexAttribPointer(3, 1, GL_FLOAT, GL_FALSE, sizeof(ParticleInstance), (void*)offsetof(ParticleInstance, rotation));
+
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 }
@@ -63,41 +67,23 @@ ParticleRenderer::~ParticleRenderer() {
 void ParticleRenderer::prepare_frame(const std::vector<std::shared_ptr<EditorScene::ParticleEmitterElement>>& particle_systems, const Window& window, const BaseEntityGlobalData& global_data) {
     std::vector<ParticleInstance> instances;
     instances.reserve(MAX_PARTICLES_PER_DRAW);
-
-    std::cout << "[ParticleRenderer] prepare_frame called with " << particle_systems.size() << " particle systems." << std::endl;
     
     for (const auto& system : particle_systems) {
         if (!system || !system) {
-            std::cout << "[ParticleRenderer] System " << system->name << " encountered a null or disabled system." << std::endl;
             continue;
         };
 
         if (!system->enabled) {
-            std::cout << "[ParticleRenderer] System " << system->name << " is disabled." << std::endl;
             continue;
         }
 
-        std::cout << "[Renderer] Processing system: " << system->name << "with" << system->particles.size() << " particles." << std::endl;
-
         if (system->particles.empty() && system->enabled) {
-            std::cout << "[Renderer] System " << system->name << " is enabled but has no particles." << std::endl;
         }
 
         glm::mat4 emitter_transform = glm::mat4(1.0f);
-        /*
-        if (!system->worldSpaceParticles) {
-            // If particles are in local space, their positions in ParticleInstance should be relative to the emitter.
-            // The emitter's transform will be applied in the shader *if* we decide to pass it.
-            // For now, assuming a_position IS world space OR the shader handles local->world.
-            // The current vert shader expects a_position to be world.
-            // So if particles are local, their positions need to be transformed to world here.
-        }
-        */
-
 
         for (const auto& p : system->particles) {
             if (instances.size() >= MAX_PARTICLES_PER_DRAW) {
-                std::cout << "[Renderer] MAX_PARTICLES_PER_DRAW reached." << std::endl;
                 break; 
             }
 
@@ -109,9 +95,10 @@ void ParticleRenderer::prepare_frame(const std::vector<std::shared_ptr<EditorSce
 
             // Create particle instance
             instances.push_back({
-                final_position, // Use potentially transformed position
+                final_position,
                 p.size,
-                p.color
+                p.color,
+                p.rotation
             });
         }
         if (instances.size() >= MAX_PARTICLES_PER_DRAW) {
@@ -119,7 +106,7 @@ void ParticleRenderer::prepare_frame(const std::vector<std::shared_ptr<EditorSce
         }
     }
 
-    // Upload particle data to GPU
+    // Upload particle data
     if (!instances.empty()) {
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glBufferSubData(GL_ARRAY_BUFFER, 0, instances.size() * sizeof(ParticleInstance), instances.data());
@@ -136,7 +123,6 @@ void ParticleRenderer::render(const BaseEntityGlobalData& global_data) {
 
     shader.use();
 
-    // Set view and projection matrices
     glUniformMatrix4fv(shader.projection_view_matrix_location, 1, GL_FALSE, glm::value_ptr(global_data.projection_view_matrix));
     
     // Set up blending for particles

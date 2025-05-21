@@ -1,9 +1,8 @@
 #ifndef PARTICLE_EMITTER_ELEMENT_H
 #define PARTICLE_EMITTER_ELEMENT_H
 
-#include "SceneElement.h" // This file contains LocalTransformComponent
+#include "SceneElement.h"
 #include "scene/SceneContext.h"
-#include "rendering/resources/TextureHandle.h" // For textureHandle
 #include <vector>
 #include <string>
 #include <glm/glm.hpp>
@@ -21,7 +20,8 @@ namespace EditorScene {
         float size = 1.0f;
         float lifeRemaining = 0.0f;
         float totalLife = 1.0f;
-        // Optional: float rotation = 0.0f; float angularVelocity = 0.0f;
+        float rotation = 0.0f;
+        float angularVelocity = 0.0f;
     };
 
     class ParticleEmitterElement : virtual public SceneElement, public LocalTransformComponent {
@@ -35,19 +35,20 @@ namespace EditorScene {
         float particleLifespanMax = 3.0f;
         glm::vec3 initialVelocityMin{ -0.5f, 1.0f, -0.5f };
         glm::vec3 initialVelocityMax{ 0.5f, 2.0f,  0.5f };
-        float initialSizeMin = 0.1f;
-        float initialSizeMax = 0.3f;
+        float initialSizeMin = 250.0f;
+        float initialSizeMax = 400.0f;
         float endSizeFactor = 0.0f; // Multiplier for initial size at end of life
+        float initialRotationMin = 0.0f;
+        float initialRotationMax = 360.0f;
+        float angularVelocityMin = -180.0f;
+        float angularVelocityMax = 180.0f;
         glm::vec4 initialColorStart{ 1.0f, 1.0f, 1.0f, 1.0f };
         glm::vec4 initialColorEnd{ 1.0f, 1.0f, 1.0f, 1.0f };
         glm::vec4 endColor{ 1.0f, 1.0f, 1.0f, 0.0f }; // Fades out by default
         glm::vec3 gravity{ 0.0f, -0.98f, 0.0f };
-        std::string particleTexturePath = "particle/default_particle.png"; // Changed from textures/default_particle.png
         bool worldSpaceParticles = false; // If true, particles are not affected by emitter's transform after emission
 
-        // Internal State
         std::vector<Particle> particles;
-        std::shared_ptr<TextureHandle> textureHandle;
         
     private:
         float emissionTimer = 0.0f;
@@ -67,9 +68,6 @@ namespace EditorScene {
         
         // Particle simulation logic
         void tick_particles(float deltaTime, const SceneContext& scene_context);
-
-        // Helper to load/reload texture
-        void load_particle_texture(const SceneContext& scene_context);
     };
 
 } // namespace EditorScene

@@ -15,7 +15,6 @@ ParticleEmitterElement::ParticleEmitterElement(const ElementRef& parent, std::st
 
 std::unique_ptr<ParticleEmitterElement> ParticleEmitterElement::new_default(const SceneContext& scene_context, ElementRef parent) {
     auto element = std::make_unique<ParticleEmitterElement>(parent, "New Particle Emitter");
-    element->load_particle_texture(scene_context);
     element->update_instance_data();
     return element;
 }
@@ -38,10 +37,8 @@ std::unique_ptr<ParticleEmitterElement> ParticleEmitterElement::from_json(const 
     element->initialColorEnd = j.value("initialColorEnd", element->initialColorEnd);
     element->endColor = j.value("endColor", element->endColor);
     element->gravity = j.value("gravity", element->gravity);
-    element->particleTexturePath = j.value("particleTexturePath", element->particleTexturePath);
     element->worldSpaceParticles = j.value("worldSpaceParticles", element->worldSpaceParticles);
 
-    element->load_particle_texture(scene_context);
     element->update_instance_data();
     return element;
 }
@@ -61,7 +58,6 @@ json ParticleEmitterElement::into_json() const {
     j["initialColorEnd"] = initialColorEnd;
     j["endColor"] = endColor;
     j["gravity"] = gravity;
-    j["particleTexturePath"] = particleTexturePath;
     j["worldSpaceParticles"] = worldSpaceParticles;
     return j;
 }
@@ -77,30 +73,17 @@ void ParticleEmitterElement::add_imgui_edit_section(MasterRenderScene& render_sc
     ImGui::DragInt("Max Particles", &maxParticles, 1, 0, 10000);
     ImGui::DragFloatRange2("Lifespan (s)", &particleLifespanMin, &particleLifespanMax, 0.01f, 0.0f, 60.0f);
     
-    ImGui::Text("Initial Velocity Min"); ImGui::DragFloat3("##IVelMinPE", &initialVelocityMin[0], 0.01f);
-    ImGui::Text("Initial Velocity Max"); ImGui::DragFloat3("##IVelMaxPE", &initialVelocityMax[0], 0.01f);
+    ImGui::Text("Initial Velocity Min"); ImGui::DragFloat3("##IVelMin", &initialVelocityMin[0], 0.01f);
+    ImGui::Text("Initial Velocity Max"); ImGui::DragFloat3("##IVelMax", &initialVelocityMax[0], 0.01f);
     
     ImGui::DragFloatRange2("Initial Size", &initialSizeMin, &initialSizeMax, 0.001f, 0.001f, 10.0f);
     ImGui::DragFloat("End Size Factor", &endSizeFactor, 0.01f, 0.0f, 10.0f);
 
-    ImGui::Text("Initial Color Start"); ImGui::ColorEdit4("##IColStartPE", glm::value_ptr(initialColorStart));
-    ImGui::Text("Initial Color End");   ImGui::ColorEdit4("##IColEndPE", glm::value_ptr(initialColorEnd));
-    ImGui::Text("End Color");           ImGui::ColorEdit4("##EndColPE", glm::value_ptr(endColor));
+    ImGui::Text("Initial Colour Start"); ImGui::ColorEdit4("##IColStart", glm::value_ptr(initialColorStart));
+    ImGui::Text("Initial Colour End");   ImGui::ColorEdit4("##IColEnd", glm::value_ptr(initialColorEnd));
+    ImGui::Text("End Colour");           ImGui::ColorEdit4("##EndCol", glm::value_ptr(endColor));
 
-    ImGui::Text("Gravity##PE"); ImGui::DragFloat3("##GravityPE", &gravity[0], 0.01f);
-
-    scene_context.texture_loader.add_imgui_texture_selector("Particle Texture", textureHandle);
-
-    if (textureHandle && textureHandle->get_filename().has_value()) {
-        particleTexturePath = textureHandle->get_filename().value();
-    } else if (textureHandle) {
-        if ( (textureHandle == scene_context.texture_loader.default_white_texture() || 
-              textureHandle == scene_context.texture_loader.default_black_texture()) && 
-             !particleTexturePath.empty() && 
-             (particleTexturePath != "default_white" && particleTexturePath != "default_black")
-           ) {
-        }
-    }
+    ImGui::Text("Gravity"); ImGui::DragFloat3("Gravity", &gravity[0], 0.01f);
 
     ImGui::Checkbox("World Space Particles", &worldSpaceParticles);
     ImGui::DragDisableCursor(scene_context.window);
@@ -127,7 +110,6 @@ const char* ParticleEmitterElement::element_type_name() const {
 
 void ParticleEmitterElement::tick_particles(float deltaTime, const SceneContext&) {
     if (!enabled) {
-        std::cout << "Emitter " << name << " disabled." << std::endl;
         return;
     }
 
@@ -137,10 +119,6 @@ void ParticleEmitterElement::tick_particles(float deltaTime, const SceneContext&
         emissionTimer -= static_cast<float>(particlesToEmit) / emissionRate;
     }
 
-    if (particlesToEmit > 0) {
-        std::cout << "Emitter " << name << " emitting " << particlesToEmit << " particles." << std::endl;
-    }
-    
     glm::vec3 emitter_position = glm::vec3(transform[3]);
 
     for (int i = 0; i < particlesToEmit && particles.size() < static_cast<size_t>(maxParticles); ++i) {
@@ -172,16 +150,15 @@ void ParticleEmitterElement::tick_particles(float deltaTime, const SceneContext&
         // Size from UI parameters
         p.size = Random::range(initialSizeMin, initialSizeMax);
         
+        // Rotation from UI parameters
+        p.rotation = Random::range(initialRotationMin, initialRotationMax);
+        p.angularVelocity = Random::range(angularVelocityMin, angularVelocityMax);
+        
         // Colour from UI parameters
         float colorLerpFactor = Random::range(0.0f, 1.0f);
         p.color = glm::mix(initialColorStart, initialColorEnd, colorLerpFactor);
 
         particles.push_back(p);
-
-        if (i == 0) {
-            std::cout << "[Emitter: " << name << "] New particle: pos(" << p.position.x << "," << p.position.y << "," << p.position.z 
-                      << "), size(" << p.size << "), life(" << p.lifeRemaining << "), color.a(" << p.color.a << ")" << std::endl;
-        }
     }
 
     bool first_updated = true;
@@ -194,41 +171,23 @@ void ParticleEmitterElement::tick_particles(float deltaTime, const SceneContext&
             particles.erase(particles.begin() + i);
         } else {
             if (first_updated) {
-                std::cout << "[Emitter: " << name << "] Updating particle " << i << std::endl;
                 first_updated = false;
             }
 
             p.velocity += gravity * deltaTime;
             p.position += p.velocity * deltaTime;
+            p.rotation += p.angularVelocity * deltaTime;
             
             float lifeRatio = 1.0f - (p.lifeRemaining / p.totalLife);
             
-            // Colour interpolation between initial and end color based on lifetime
             glm::vec4 initialColor = p.color;
             p.color = glm::mix(initialColor, endColor, lifeRatio);
             
-            // Size interpolation based on end size factor
             float sizeAtEmission = p.size;
             p.size = glm::mix(sizeAtEmission, sizeAtEmission * endSizeFactor, lifeRatio);
             
             i++;
         }
-    }
-}
-
-void ParticleEmitterElement::load_particle_texture(const SceneContext& scene_context) {
-    std::cout << "Loading particle texture: " << particleTexturePath << std::endl;
-    
-    if (!particleTexturePath.empty()) {
-        textureHandle = scene_context.texture_loader.load_from_file(particleTexturePath, true);
-    }
-    
-    if (!textureHandle) {
-        std::cout << "Texture loading failed, using default white texture" << std::endl;
-        // Fallback to default white if loading failed or path is empty
-        textureHandle = scene_context.texture_loader.default_white_texture();
-    } else {
-        std::cout << "Texture loaded successfully, ID: " << textureHandle->get_texture_id() << std::endl;
     }
 }
 

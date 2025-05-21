@@ -1,10 +1,12 @@
 #version 330 core
 
-layout (location = 0) in vec3 a_position;    // World-space position of the vertex (calculated on CPU for billboarding)
+layout (location = 0) in vec3 a_position;
 layout (location = 1) in float a_size;
-layout (location = 2) in vec4 a_color;       // Per-vertex color, potentially interpolated from particle color
+layout (location = 2) in vec4 a_color;
+layout (location = 3) in float a_rotation;
 
 out vec4 v_color;
+out float v_rotation;
 
 uniform mat4 projection_view_matrix;
 
@@ -18,5 +20,6 @@ void main() {
 
     gl_PointSize = max(1.0, a_size / distance_to_camera);
 
+    v_rotation = a_rotation;
     v_color = a_color;
 } 

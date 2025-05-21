@@ -18,12 +18,13 @@ namespace EditorScene { class ParticleEmitterElement; }
 namespace ParticleRenderer {
 
     // Maximum number of particles to render in a single draw call
-    static constexpr size_t MAX_PARTICLES_PER_DRAW = 10000;
+    static constexpr size_t MAX_PARTICLES_PER_DRAW = 100000;
 
     struct ParticleInstance {
         glm::vec3 position;
-        float     size;
+        float size;
         glm::vec4 color;
+        float rotation;
     };
 
     class ParticleShader : public ShaderInterface {
