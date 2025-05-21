@@ -70,8 +70,8 @@ void EditorScene::EmissiveEntityElement::add_imgui_edit_section(MasterRenderScen
     // Task D - Material Properties
     // Emissive material properties
     ImGui::Text("Emissive Material Properties");
-    ImGui::ColorEdit3("Emission Color", &rendered_entity->instance_data.material.emission_tint[0]);
-    ImGui::DragFloat("Emission Intensity", &rendered_entity->instance_data.material.emission_tint.a, 0.01f, 0.0f, 10.0f);
+    ImGui::ColorEdit3("Emission Tint", &rendered_entity->instance_data.material.emission_tint[0]);
+    ImGui::DragFloat("Emission Factor", &rendered_entity->instance_data.material.emission_tint.a, 0.01f, 0.0f, 10.0f);
     ImGui::Spacing();
 
     ImGui::DragDisableCursor(scene_context.window);

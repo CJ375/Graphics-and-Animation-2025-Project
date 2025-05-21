@@ -32,7 +32,7 @@ struct DirectionalLightData {
 };
 
 // Calculations
-const float ambient_factor = 0.002f;
+const float ambient_factor = 0.1f;
 
 // Point Lights
 void point_light_calculation(PointLightData point_light, LightCalculatioData calculation_data, float shininess, inout vec3 total_diffuse, inout vec3 total_specular, inout vec3 total_ambient) {

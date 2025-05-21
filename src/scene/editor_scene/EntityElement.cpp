@@ -118,7 +118,7 @@ void EditorScene::EntityElement::add_imgui_edit_section(MasterRenderScene& rende
     ImGui::Spacing();
 
     // Shininess properties
-    ImGui::DragFloat("Shininess", &rendered_entity->instance_data.material.shininess, 1.0f, 0.0f, 2.0f);
+    ImGui::DragFloat("Shininess", &rendered_entity->instance_data.material.shininess, 1.0f, 0.0f, 150.0f);
     ImGui::Spacing();
 
     ImGui::DragDisableCursor(scene_context.window);
