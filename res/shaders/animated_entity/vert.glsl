@@ -1,5 +1,4 @@
 #version 410 core
-#include "../common/lights.glsl"
 #include "../common/maths.glsl"
 
 // Per vertex data
@@ -9,41 +8,20 @@ layout(location = 2) in vec2 texture_coordinate;
 layout(location = 3) in vec4 bone_weights;
 layout(location = 4) in uvec4 bone_indices;
 
-out VertexOut {
-    LightingResult lighting_result;
+out VertexDataOut {
+    vec3 ws_position;
+    vec3 ws_normal;
     vec2 texture_coordinate;
-} vertex_out;
+} vertex_data_out;
 
 // Per instance data
 uniform mat4 model_matrix;
 
-// Material properties
-uniform vec3 diffuse_tint;
-uniform vec3 specular_tint;
-uniform vec3 ambient_tint;
-uniform float shininess;
-
-// Light Data
-#if NUM_PL > 0
-layout (std140) uniform PointLightArray {
-    PointLightData point_lights[NUM_PL];
-};
-#endif
-
-#if NUM_DL > 0
-layout (std140) uniform DirectionalLightArray {
-    DirectionalLightData directional_lights[NUM_DL];
-};
-#endif
-
 // Animation Data
 uniform mat4 bone_transforms[BONE_TRANSFORMS];
 
-// Global data
-uniform vec3 ws_view_position;
+// Global Data
 uniform mat4 projection_view_matrix;
-
-uniform sampler2D specular_map_texture;
 
 void main() {
     // Transform vertices
@@ -59,23 +37,13 @@ void main() {
     mat4 animation_matrix = model_matrix * bone_transform;
     mat3 normal_matrix = cofactor(animation_matrix);
 
-    vec3 ws_position = (animation_matrix * vec4(vertex_position, 1.0f)).xyz;
-    vec3 ws_normal = normalize(normal_matrix * normal);
-    vertex_out.texture_coordinate = texture_coordinate;
+    vec3 calculated_ws_position = (animation_matrix * vec4(vertex_position, 1.0f)).xyz;    vec3 ws_normal = normalize(normal_matrix * normal);
+    vec3 calculated_ws_normal = normalize(normal_matrix * normal);
+    
+    // Pass data to fragment shader
+    vertex_data_out.ws_position = calculated_ws_position;
+    vertex_data_out.ws_normal = calculated_ws_normal;
+    vertex_data_out.texture_coordinate = texture_coordinate;
 
-    gl_Position = projection_view_matrix * vec4(ws_position, 1.0f);
-
-    // Per vertex light calcs are below this point
-    vec3 ws_view_dir = normalize(ws_view_position - ws_position);
-    LightCalculatioData light_calculation_data = LightCalculatioData(ws_position, ws_view_dir, ws_normal);
-    Material material = Material(diffuse_tint, specular_tint, ambient_tint, shininess);
-
-    vertex_out.lighting_result = total_light_calculation(light_calculation_data, material
-        #if NUM_PL > 0
-        ,point_lights
-        #endif
-        #if NUM_DL > 0
-        ,directional_lights
-        #endif
-    );
+    gl_Position = projection_view_matrix * vec4(calculated_ws_position, 1.0f);
 }

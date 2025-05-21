@@ -55,7 +55,7 @@ void BaseLitEntityShader::set_point_lights(const std::vector<PointLight>& point_
         point_lights_ubo.data[i].colour = scaled_colour;
     }
 
-    set_vert_define("NUM_PL", Formatter() << count);
+    set_frag_define("NUM_PL", Formatter() << count);
     point_lights_ubo.bind(POINT_LIGHT_BINDING);
     point_lights_ubo.upload();
 }
@@ -73,7 +73,7 @@ void BaseLitEntityShader::set_directional_lights(const std::vector<DirectionalLi
         directional_lights_ubo.data[i].colour = scaled_colour;
     }
 
-    set_vert_define("NUM_DL", Formatter() << count);
+    set_frag_define("NUM_DL", Formatter() << count);
     directional_lights_ubo.bind(DIRECTIONAL_LIGHT_BINDING);
     directional_lights_ubo.upload();
 }
