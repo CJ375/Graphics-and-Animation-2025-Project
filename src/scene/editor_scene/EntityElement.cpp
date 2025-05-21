@@ -51,7 +51,6 @@ std::unique_ptr<EditorScene::EntityElement> EditorScene::EntityElement::new_defa
 
 
 std::unique_ptr<EditorScene::EntityElement> EditorScene::EntityElement::from_json(const SceneContext& scene_context, EditorScene::ElementRef parent, const json& j) {
-
     auto new_entity = new_default(scene_context, parent);
     new_entity->update_local_transform_from_json(j);
     new_entity->update_material_from_json(j);
@@ -59,12 +58,12 @@ std::unique_ptr<EditorScene::EntityElement> EditorScene::EntityElement::from_jso
     new_entity->rendered_entity->model = scene_context.model_loader.load_from_file<EntityRenderer::VertexData>(j["model"]);
     new_entity->rendered_entity->render_data.diffuse_texture = texture_from_json(scene_context, j["diffuse_texture"]);
     new_entity->rendered_entity->render_data.specular_map_texture = texture_from_json(scene_context, j["specular_map_texture"]);
-    new_entity->rendered_entity->instance_data.material.texture_scale = j["texture_scale"];
+    
+    new_entity->material.texture_scale = j["texture_scale"];
+    new_entity->rendered_entity->instance_data.material.texture_scale = new_entity->material.texture_scale;
 
     new_entity->update_instance_data();
-
     return new_entity;
-
 }
 
 

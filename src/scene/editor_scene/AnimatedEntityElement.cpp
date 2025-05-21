@@ -43,7 +43,9 @@ std::unique_ptr<EditorScene::AnimatedEntityElement> EditorScene::AnimatedEntityE
     new_entity->rendered_entity->mesh_hierarchy = scene_context.model_loader.load_hierarchy_from_file<AnimatedEntityRenderer::VertexData>(j["model"]);
     new_entity->rendered_entity->render_data.diffuse_texture = texture_from_json(scene_context, j["diffuse_texture"]);
     new_entity->rendered_entity->render_data.specular_map_texture = texture_from_json(scene_context, j["specular_map_texture"]);
-    new_entity->rendered_entity->instance_data.material.texture_scale = j["texture_scale"]; // Task E
+    
+    new_entity->material.texture_scale = j["texture_scale"]; // Task E
+    new_entity->rendered_entity->instance_data.material.texture_scale = new_entity->material.texture_scale;
 
     json animation_parameters = j["animation_parameters"];
     new_entity->animation_parameters.animation_id = animation_parameters["animation_id"];
