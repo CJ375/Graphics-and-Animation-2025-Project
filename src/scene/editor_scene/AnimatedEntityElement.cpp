@@ -51,6 +51,12 @@ std::unique_ptr<EditorScene::AnimatedEntityElement> EditorScene::AnimatedEntityE
     new_entity->rendered_entity->animation_id = animation_parameters["animation_id"];
     new_entity->rendered_entity->animation_time_seconds = animation_parameters["animation_time_seconds"];
 
+    // Load texture scale if present in the JSON, otherwise use default (1.0, 1.0)
+    if (j.contains("texture_scale")) {
+        new_entity->texture_scale.x = j["texture_scale"][0];
+        new_entity->texture_scale.y = j["texture_scale"][1];
+    }
+
     new_entity->update_instance_data();
     return new_entity;
 }
@@ -68,6 +74,7 @@ json EditorScene::AnimatedEntityElement::into_json() const {
         {"model", rendered_entity->mesh_hierarchy->filename.value()},
         {"diffuse_texture", texture_to_json(rendered_entity->render_data.diffuse_texture)},
         {"specular_map_texture", texture_to_json(rendered_entity->render_data.specular_map_texture)},
+        {"texture_scale", {texture_scale.x, texture_scale.y}}, // Add texture scale to JSON
         {"animation_parameters", {
             {"animation_id", animation_parameters.animation_id},
             {"speed", animation_parameters.speed},
@@ -105,6 +112,11 @@ void EditorScene::AnimatedEntityElement::add_imgui_edit_section(MasterRenderScen
     ImGui::ColorEdit3("Ambient Color", &rendered_entity->instance_data.material.ambient_tint[0]);
     ImGui::DragFloat("Ambient Intensity", &rendered_entity->instance_data.material.ambient_tint.a, 0.01f, 0.0f, 1.0f);
     ImGui::Spacing();
+    
+    // Task E - Add Texture Scaling controls
+    ImGui::Text("Texture Scaling");
+    ImGui::DragFloat2("Scale", &texture_scale[0], 0.1f, 0.1f, 10.0f);
+    ImGui::Spacing();
 
     ImGui::DragDisableCursor(scene_context.window);
     ImGui::Spacing();
@@ -129,6 +141,9 @@ void EditorScene::AnimatedEntityElement::update_instance_data() {
 
     rendered_entity->instance_data.model_matrix = transform;
     rendered_entity->instance_data.material = material;
+    
+    // Update texture scale in rendered entity
+    rendered_entity->texture_scale = texture_scale;
 }
 
 const char* EditorScene::AnimatedEntityElement::element_type_name() const {
