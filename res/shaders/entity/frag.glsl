@@ -15,6 +15,9 @@ uniform vec3 specular_tint;
 uniform vec3 ambient_tint;
 uniform float shininess;
 
+// Task E - Add texture scaling uniform
+uniform vec2 texture_scale = vec2(1.0, 1.0);  // Default value if not set
+
 // Light Data
 #if NUM_PL > 0
 layout (std140) uniform PointLightArray {
@@ -31,19 +34,17 @@ layout (std140) uniform DirectionalLightArray {
 // Global Data
 uniform float inverse_gamma;
 uniform vec3 ws_view_position;
-
 uniform sampler2D diffuse_texture;
 uniform sampler2D specular_map_texture;
 
 void main() {
     // Per fragment lighting calculation
     vec3 ws_view_dir = normalize(ws_view_position - frag_in.ws_position);
-
     vec3 normalized_ws_normal = normalize(frag_in.ws_normal);
-
+    
     LightCalculatioData light_calculation_data = LightCalculatioData(frag_in.ws_position, ws_view_dir, normalized_ws_normal);
     Material material = Material(diffuse_tint, specular_tint, ambient_tint, shininess);
-
+    
     LightingResult lighting_result = total_light_calculation(light_calculation_data, material
         #if NUM_PL > 0
         ,point_lights
@@ -52,10 +53,13 @@ void main() {
         ,directional_lights
         #endif
     );
-
-    // Resolve lighting with fragment texture sampling
-    vec3 resolved_lighting = resolve_textured_light_calculation(lighting_result, diffuse_texture, specular_map_texture, frag_in.texture_coordinate);
-
+    
+    // Apply texture scaling to texture coordinates
+    vec2 scaled_tex_coords = frag_in.texture_coordinate * texture_scale;
+    
+    // Resolve lighting with fragment texture sampling using scaled coordinates
+    vec3 resolved_lighting = resolve_textured_light_calculation(lighting_result, diffuse_texture, specular_map_texture, scaled_tex_coords);
+    
     out_colour = vec4(resolved_lighting, 1.0f);
     out_colour.rgb = pow(out_colour.rgb, vec3(inverse_gamma));
 }
