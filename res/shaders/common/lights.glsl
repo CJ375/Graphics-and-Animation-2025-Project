@@ -55,9 +55,9 @@ void point_light_calculation(PointLightData point_light, LightCalculatioData cal
     float specular_factor = pow(max(dot(calculation_data.ws_normal, ws_halfway_dir), 0.0f), shininess);
     vec3 specular_component = specular_factor * point_light.colour;
 
-    total_diffuse += diffuse_component;
-    total_specular += specular_component;
-    total_ambient += ambient_component;
+    total_diffuse += diffuse_component * attenuation;
+    total_specular += specular_component * attenuation;
+    total_ambient += ambient_component * attenuation;
 }
 
 // Directional Lights
@@ -78,11 +78,6 @@ void directional_light_calculation(DirectionalLightData directional_light, Light
     total_diffuse += diffuse_component;
     total_specular += specular_component;
     total_ambient += ambient_component;
-    
-    // TASK F: Apply attenuation to all components
-    total_diffuse += diffuse_component * attenuation;
-    total_specular += specular_component * attenuation;
-    total_ambient += ambient_component * attenuation;
 }
 
 // Total Calculation
@@ -124,7 +119,9 @@ LightingResult total_light_calculation(LightCalculatioData light_calculation_dat
     #if NUM_DL > 0
     total_light_count += float(NUM_DL);
     #endif
-    total_ambient /= total_light_count;
+    if (total_light_count > 0.0f) {
+        total_ambient /= total_light_count;
+    }
     #endif
     
     total_diffuse *= material.diffuse_tint;

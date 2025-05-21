@@ -84,37 +84,11 @@ void EditorScene::EditorScene::open(const SceneContext& scene_context) {
         )
     );
 
-    /// Crate the default directional light
-    auto default_dir_light = std::make_unique<DirectionalLightElement>(
-        NullElementRef,
-        "Default Directional Light",
-        glm::vec3{0.0f, -1.0f, -0.2f},
-        DirectionalLight::create(
-            glm::vec3{0.0f, -1.0f, -0.2f},
-            glm::vec4{default_light_col, 0.8f}
-        ),
-        EmissiveEntityRenderer::Entity::create(
-            scene_context.model_loader.load_from_file<EmissiveEntityRenderer::VertexData>("arrow.obj"),
-            EmissiveEntityRenderer::InstanceData{
-                glm::mat4{1.0f},
-                EmissiveEntityRenderer::EmissiveEntityMaterial{
-                    glm::vec4{default_light_col, 0.8f}
-                }
-            },
-            EmissiveEntityRenderer::RenderData{
-                scene_context.texture_loader.default_white_texture()
-            }
-        )
-    );
-
     /// Update the transform, to propagate the position, rotation, scale, etc.. from the SceneElement to the actual Entity
     default_light->update_instance_data();
-    default_dir_light->update_instance_data();
     /// Add the SceneElement to the render scene, and add to the root of the tree
     default_light->add_to_render_scene(render_scene);
-    default_dir_light->add_to_render_scene(render_scene);
     scene_root->push_back(std::move(default_light));
-    scene_root->push_back(std::move(default_dir_light));
 
     /// Setup all the generates
 
