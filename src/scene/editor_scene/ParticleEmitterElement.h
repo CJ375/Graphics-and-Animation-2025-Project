@@ -48,10 +48,21 @@ namespace EditorScene {
         glm::vec3 gravity{ 0.0f, -0.98f, 0.0f };
         bool worldSpaceParticles = false; // If true, particles are not affected by emitter's transform after emission
 
+        // Force Properties
+        glm::vec3 windForce{ 0.0f, 0.0f, 0.0f };
+        glm::vec3 attractorPosition{ 0.0f, 0.0f, 0.0f };
+        float attractorStrength = 0.0f;
+        float attractorRadius = 5.0f;
+        float turbulenceStrength = 0.0f;
+        float turbulenceFrequency = 1.0f;
+
+        // Internal State
         std::vector<Particle> particles;
+        std::shared_ptr<TextureHandle> textureHandle;
         
     private:
         float emissionTimer = 0.0f;
+        float turbulenceTimer = 0.0f;
 
     public:
         ParticleEmitterElement(const ElementRef& parent, std::string name);
@@ -68,6 +79,7 @@ namespace EditorScene {
         
         // Particle simulation logic
         void tick_particles(float deltaTime, const SceneContext& scene_context);
+        void draw_properties();
     };
 
 } // namespace EditorScene
